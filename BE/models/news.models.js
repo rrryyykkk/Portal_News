@@ -2,6 +2,7 @@ import mongoose from "mongoose";
 
 const newsSchema = new mongoose.Schema(
   {
+    newsId: { type: String },
     title: {
       type: String,
       required: true,
@@ -37,6 +38,10 @@ const newsSchema = new mongoose.Schema(
       default: "admin",
     },
     externalId: { type: String, default: null }, // id dari mediastack API,jika ada
+    userId: {
+      type: String,
+      ref: "User",
+    },
   },
   { timestamps: true }
 );

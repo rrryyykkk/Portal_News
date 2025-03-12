@@ -9,5 +9,7 @@ import { verifyCookieToken } from "../middlewares/auth.Middlewares.js";
 const router = express.Router();
 
 router.get("/:newsId", getAllComments);
-router.post("/:newsId/comment", verifyCookieToken, addComment);
-router.post("/:newsId/likeUnlike", verifyCookieToken, likeUnlike);
+router.post("/:newsId/comments", verifyCookieToken, addComment);
+router.post("/:newsId/likes", verifyCookieToken, likeUnlike);
+
+export default router;

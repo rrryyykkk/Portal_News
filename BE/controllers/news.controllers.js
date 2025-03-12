@@ -88,6 +88,7 @@ export const createNews = async (req, res) => {
       title,
       description,
       author: req.user.userName || "admin",
+      userId: req.user._id,
       newsImage,
       newsVideo,
       category,

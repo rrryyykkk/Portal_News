@@ -1,10 +1,10 @@
 import mongoose from "mongoose";
 
-const commentSchema = new mongoose.model(
+const commentSchema = new mongoose.Schema(
   {
-    newsId: { type: mongoose.Schema.Types.ObjectId, ref: "News" },
-    userId: { type: mongoose.Schema.Types.ObjectId, ref: "User" },
-    text: { type: String, required: true, trim },
+    newsId: { type: String, ref: "News" },
+    userId: { type: String, ref: "User" },
+    text: { type: String, required: true },
     parentId: { type: mongoose.Schema.Types.ObjectId, ref: "Comment" },
   },
   { timestamps: true }
