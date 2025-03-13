@@ -6,6 +6,7 @@ const commentSchema = new mongoose.Schema(
     userId: { type: String, ref: "User" },
     text: { type: String, required: true },
     parentId: { type: mongoose.Schema.Types.ObjectId, ref: "Comment" },
+    edited: { type: Boolean, default: false },
   },
   { timestamps: true }
 );
