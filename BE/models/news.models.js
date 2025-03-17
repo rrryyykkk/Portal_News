@@ -28,6 +28,7 @@ const newsSchema = new mongoose.Schema(
         "Entertainment",
         "Business",
         "Health",
+        "general",
         "Other",
       ],
     },
@@ -42,6 +43,9 @@ const newsSchema = new mongoose.Schema(
       type: String,
       ref: "User",
     },
+    likes: { type: Number, default: 0 },
+    views: { type: Number, default: 0 },
+    comments: { type: Number, default: 0 },
   },
   { timestamps: true }
 );

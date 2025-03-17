@@ -1,4 +1,5 @@
 import admin from "../config/firebase.js";
+import newsModels from "../models/news.models.js";
 import User from "../models/user.models.js";
 
 export const verifyCookieToken = async (req, res, next) => {
@@ -52,5 +53,20 @@ export const verifyAdmin = (req, res, next) => {
     return res
       .status(500)
       .json({ message: "Internal server error", error: error.message });
+  }
+};
+
+export const addViews = async (req, res, next) => {
+  try {
+    const { newsId } = req.params;
+    await newsModels.findByIdAndUpdate(
+      newsId,
+      { $inc: { views: 1 } }, //Increment Views di berita
+      { new: true, runValidators: true } // kembalikan data terbaru setelah update
+    );
+
+    next();
+  } catch (error) {
+    return res.status(500).json({ error: error.message });
   }
 };

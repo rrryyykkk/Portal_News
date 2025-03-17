@@ -15,7 +15,7 @@ const notificationSchema = new mongoose.Schema(
     },
     type: {
       type: String,
-      enum: ["follow", "like", "comment", "replyComment","marked"],
+      enum: ["follow", "like", "comment", "replyComment", "marked"],
       required: true,
     },
     newsId: {
@@ -23,18 +23,22 @@ const notificationSchema = new mongoose.Schema(
       required: function () {
         return this.type !== "follow"; // newsId itu untuk like/comments
       },
+      index: true,
     },
-    commentId: { type: String },
+    commentId: { type: String, index: true },
     message: {
       type: String,
     },
     isRead: {
       type: Boolean,
       default: false,
+      index: true,
     },
   },
   { timestamps: true }
 );
+
+notificationSchema.index({ to: 1, isRead: 1, createdAt: -1 });
 
 const Notification = mongoose.model("Notification", notificationSchema);
 export default Notification;

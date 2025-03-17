@@ -1,9 +1,7 @@
-import { query } from "express";
 import Comment from "../models/comment.model.js";
 import News from "../models/news.models.js";
 import Notification from "../models/notification.models.js";
 import User from "../models/user.models.js";
-import mongoose from "mongoose";
 
 export const likeUnlike = async (req, res) => {
   try {
@@ -109,11 +107,11 @@ export const editComment = async (req, res) => {
 
     const comment = await Comment.findById(commentId);
     if (!comment) {
-      res.status(404).json({ message: "Comment not found" });
+      return res.status(404).json({ message: "Comment not found" });
     }
 
     if (comment.userId !== userId) {
-      res.status(404).json({ message: "Unauthorized" });
+      return res.status(404).json({ message: "Unauthorized" });
     }
 
     comment.text = text;
