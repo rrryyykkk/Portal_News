@@ -30,7 +30,7 @@ export const getAllNews = async (req, res) => {
 
     res.status(200).json({
       news,
-      totalNews: Math.ceil(totalNews / limit),
+      totalPages: Math.ceil(totalNews / limit),
       currentPage: page,
     });
   } catch (error) {
@@ -57,7 +57,7 @@ export const fecthDataNewsExternal = async (req, res) => {
     console.timeEnd("fetch data mediastack");
 
     const fetchedNews = response?.data?.data || [];
-    totalExternalNews = response?.data?.pagination?.total || 0;
+    const totalExternalNews = response?.data?.pagination?.total || 0;
 
     console.time("process External Data");
 
@@ -94,7 +94,7 @@ export const fecthDataNewsExternal = async (req, res) => {
     }
 
     // Ambil ulang data external dari database setelah penyimpanan
-    externalNews = await News.find({ source: "external" })
+    const externalNews = await News.find({ source: "external" })
       .sort({ createdAt: -1 })
       .skip(skip)
       .limit(limit)
@@ -114,7 +114,7 @@ export const fecthDataNewsExternal = async (req, res) => {
 export const deleteNewsExternalId = async (req, res) => {
   try {
     const oneWeekAgo = new Date();
-    oneWeekAgo.setUTCDate(oneWeekAgo.getUTCDate() - 7);
+    oneWeekAgo.setDate(oneWeekAgo.getDate() - 7);
 
     const result = await News.deleteMany({
       source: "external",
@@ -126,6 +126,7 @@ export const deleteNewsExternalId = async (req, res) => {
     });
   } catch (error) {
     console.error("Error delete news:", error.message);
+    res.status(500).json({ error: error.message });
   }
 };
 
