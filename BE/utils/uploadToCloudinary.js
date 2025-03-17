@@ -5,7 +5,7 @@ import axios from "axios";
 export const uploadToCloudinary = (fileBuffer, folder, mimeType) => {
   return new Promise((resolve, reject) => {
     if (!fileBuffer) {
-      return reject(new Error("file filebuffer is empty"));
+      return reject(new Error("file buffer is empty"));
     }
     const resourceType = mimeType.startsWith("image/")
       ? "image"
@@ -13,10 +13,13 @@ export const uploadToCloudinary = (fileBuffer, folder, mimeType) => {
       ? "video"
       : null;
 
-    console.log("Resource Type:", resourceType);
     if (!resourceType) {
       return reject(new Error("Only images and videos are allowed"));
     }
+
+    console.log(
+      `Uploading to cloudinary, folder: ${folder},resourceType: ${resourceType}`
+    );
 
     const uploadStream = cloudinary.uploader.upload_stream(
       {
@@ -34,8 +37,6 @@ export const uploadToCloudinary = (fileBuffer, folder, mimeType) => {
         }
       }
     );
-
-    console.log("uploda Stream:", uploadStream);
     streamifier.createReadStream(fileBuffer).pipe(uploadStream);
   });
 };
@@ -46,7 +47,7 @@ export const isValidImageUrl = (url) => {
   );
 };
 
-export const donwloadAndUploadImage = async (imageUrl) => {
+export const downloadAndUploadImage = async (imageUrl) => {
   try {
     const response = await axios.get(imageUrl, { responseType: "arraybuffer" });
 

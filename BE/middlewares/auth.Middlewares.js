@@ -5,6 +5,7 @@ import User from "../models/user.models.js";
 export const verifyCookieToken = async (req, res, next) => {
   try {
     // pastikan req.cookies.authToken tersedia
+    const startTime = Date.now();
     const token =
       req.cookies?.authToken ||
       (req.headers.authorization &&
@@ -28,6 +29,9 @@ export const verifyCookieToken = async (req, res, next) => {
     if (!user) return res.status(401).json({ message: "User not found" });
 
     req.user = user;
+    const endTime = Date.now();
+    const executionTime = endTime - startTime;
+    console.log("Execution time:", executionTime, "ms");
     next();
   } catch (error) {
     console.log("Firebase token error:", error);

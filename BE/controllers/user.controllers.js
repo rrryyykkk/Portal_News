@@ -1,8 +1,7 @@
-import mongoose from "mongoose";
 import Notification from "../models/notification.models.js";
 import User from "../models/user.models.js";
 import {
-  donwloadAndUploadImage,
+  downloadAndUploadImage,
   isValidImageUrl,
   uploadToCloudinary,
 } from "../utils/uploadToCloudinary.js";
@@ -23,7 +22,6 @@ export const editProfile = async (req, res) => {
   try {
     const { userName, fullName, password, bio, profileImage, backgroundImage } =
       req.body;
-    console.log("Edit profile req:", req.body);
 
     const user = await User.findById(req.user._id);
     if (!user) return res.status(404).json({ message: "User not found" });
@@ -32,8 +30,8 @@ export const editProfile = async (req, res) => {
 
     const uploadPromise = [];
 
+    // upload profileImage
     if (req.files?.profileImage) {
-      console.log("Uploading profile img.....");
       uploadPromise.push(
         uploadToCloudinary(
           req.files.profileImage.data,
@@ -42,9 +40,8 @@ export const editProfile = async (req, res) => {
         ).then((url) => (user.profileImage = url))
       );
     } else if (profileImage && !isValidImageUrl(profileImage)) {
-      console.log("Donwloading & uploading external profile image....");
       uploadPromise.push(
-        donwloadAndUploadImage(profileImage).then(
+        downloadAndUploadImage(profileImage).then(
           (url) => (user.profileImage = url)
         )
       );
@@ -52,8 +49,8 @@ export const editProfile = async (req, res) => {
       user.profileImage = profileImage;
     }
 
+    // upload background
     if (req.files?.backgroundImage) {
-      console.log("Uploading background img.....");
       uploadPromise.push(
         uploadToCloudinary(
           req.files.backgroundImage.data,
@@ -62,9 +59,8 @@ export const editProfile = async (req, res) => {
         ).then((url) => (user.profileImage = url))
       );
     } else if (backgroundImage && !isValidImageUrl(backgroundImage)) {
-      console.log("Donwloading & uploading external profile image....");
       uploadPromise.push(
-        donwloadAndUploadImage(backgroundImage).then(
+        downloadAndUploadImage(backgroundImage).then(
           (url) => (user.backgroundImage = url)
         )
       );
@@ -76,9 +72,8 @@ export const editProfile = async (req, res) => {
     if (fullName) user.fullName = fullName;
     if (bio) user.bio = bio;
 
-    console.log("sebelum di save:", user);
+    await Promise.allSettled(uploadPromise);
     await user.save();
-    console.log("sesudah di save:", user);
     res.json(user);
   } catch (error) {
     res
@@ -164,22 +159,20 @@ export const followUnFollow = async (req, res) => {
 // hanya admin yang bisa
 export const followers = async (req, res) => {
   try {
-    if (req.user.role !== "admin") {
-      return res.status(403).json({ message: "Unauthorized" });
-    }
-
-    const target = await User.findById(req.params.targetUserId);
+    const target = await User.findById(req.params.targetUserId)
+      .select("followers")
+      .lean();
     if (!target) {
       return res.status(404).json({ message: " User not found" });
     }
     console.log("target:", target);
 
-    target.followers = await User.find({
-      _id: { $in: target.followers },
-    }).select("userName fullName profileImage");
-    console.log("target Followers:", target.followers);
+    const followers = await User.find(
+      { _id: { $in: target.followers } },
+      "_id userName profileImage"
+    ).lean();
 
-    res.json(target.followers);
+    res.json(followers);
   } catch (error) {
     res
       .status(500)

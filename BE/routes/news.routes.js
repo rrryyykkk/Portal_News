@@ -16,17 +16,18 @@ import {
 
 const router = express.Router();
 
-router.post("/:newsId", addViews, getNewsById);
-router.get("/:newsId", getStatisticNewsById);
+router.get("/", getAllNews);
+router.post("/create", verifyCookieToken, verifyAdmin, createNews);
+router.put("/updated/:id", verifyCookieToken, verifyAdmin, updateNews);
+router.delete("/delete/:id", verifyCookieToken, verifyAdmin, deleteNews);
 router.get(
   "/stat/global",
   verifyCookieToken,
   verifyAdmin,
   getStatisticNewsGlobal
 );
-router.get("/", getAllNews);
-router.post("/create", verifyCookieToken, verifyAdmin, createNews);
-router.put("/updated/:id", verifyCookieToken, verifyAdmin, updateNews);
-router.delete("/delete/:id", verifyCookieToken, verifyAdmin, deleteNews);
+
+router.post("/:newsId", addViews, getNewsById);
+router.get("/:newsId", getStatisticNewsById);
 
 export default router;

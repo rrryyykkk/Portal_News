@@ -152,6 +152,8 @@ export const getNewsById = async (req, res) => {
 export const createNews = async (req, res) => {
   try {
     const { title, description, author, category } = req.body;
+
+    const startUpload = Date.now();
     let newsImage = null;
     let newsVideo = null;
 
@@ -169,7 +171,9 @@ export const createNews = async (req, res) => {
         req.files.newsVideo[0].mimeType
       );
     }
+    console.log("upload time:", Date.now() - startUpload);
 
+    const startSave = Date.now();
     const newNews = new News({
       title,
       description,
@@ -182,6 +186,7 @@ export const createNews = async (req, res) => {
     });
 
     await newNews.save();
+    console.log("save time:", Date.now() - startSave);
     res
       .status(200)
       .json({ message: "News successfuly created. ", news: newNews });
@@ -195,7 +200,14 @@ export const createNews = async (req, res) => {
 export const updateNews = async (req, res) => {
   try {
     const { title, description, category } = req.body;
-    let updateFields = { title, description, category };
+
+    // validasi lebih awal
+    let updateFields = {};
+
+    // cek ad field yg diisi, dn masukan ke updateFields
+    if (title) updateFields.title = title;
+    if (description) updateFields.description = description;
+    if (category) updateFields.category = category;
 
     if (req.files?.newsImage) {
       updateFields.newsImage = await uploadToCloudinary(
@@ -212,9 +224,14 @@ export const updateNews = async (req, res) => {
       );
     }
 
+    if (Object.keys(updateFields).length === 0)
+      return res
+        .status(400)
+        .json({ message: "No fields to update", success: false });
+
     const updatedNews = await News.findByIdAndUpdate(
       req.params.id,
-      updateFields,
+      { $set: updateFields },
       { new: true }
     );
 
