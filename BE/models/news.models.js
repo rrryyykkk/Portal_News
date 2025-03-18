@@ -50,4 +50,6 @@ const newsSchema = new mongoose.Schema(
   { timestamps: true }
 );
 
+newsSchema.index({ userId: 1 });
+
 export default mongoose.model("News", newsSchema);
