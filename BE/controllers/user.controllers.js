@@ -159,16 +159,16 @@ export const followUnFollow = async (req, res) => {
 // hanya admin yang bisa
 export const followers = async (req, res) => {
   try {
-    const target = await User.findById(req.params.targetUserId)
-      .select("followers")
-      .lean();
-    if (!target) {
-      return res.status(404).json({ message: " User not found" });
+    const adminId = req.user._id;
+    const admin = await User.findById(adminId).select("followers").lean();
+
+
+    if (!admin) {
+      return res.status(404).json({ error: "Admin not found" });
     }
-    console.log("target:", target);
 
     const followers = await User.find(
-      { _id: { $in: target.followers } },
+      { _id: { $in: admin.followers } },
       "_id userName profileImage"
     ).lean();
 

@@ -15,11 +15,6 @@ const router = express.Router();
 router.get("/me", verifyCookieToken, getProfile);
 router.put("/edit", verifyCookieToken, editProfile);
 router.post("/follow/:id", verifyCookieToken, followUnFollow);
-router.get(
-  "/followers/:targetUserId",
-  verifyCookieToken,
-  verifyAdmin,
-  followers
-);
+router.get("/followers", verifyCookieToken, verifyAdmin, followers);
 
 export default router;
