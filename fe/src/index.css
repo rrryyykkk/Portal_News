@@ -1,0 +1,60 @@
+@import "tailwindcss";
+@plugin "daisyui";
+
+/* @plugin bukan valid di CSS, harusnya plugin DaisyUI disetup di tailwind.config.js */
+
+:root {
+  /* Colors */
+  --primary-color: #f81539;
+  --black-color: #3e3232;
+  --white-color: #ffffff;
+  --dark-color: #000000;
+  --secondary-color: #fc4308;
+
+  /* Font Sizes & Styles — gak bisa kayak: font, weight, size sekaligus
+     harus dipisah jadi variable terpisah (font-family, font-size, font-weight) */
+
+  /* Headings */
+
+  --font-h1: "Roboto", sans-serif;
+  --size-h1: 40px;
+
+  --font-h2: "Roboto", sans-serif;
+  --size-h2: 31px;
+
+  --font-h3: "Roboto", sans-serif;
+  --size-h3: 25px;
+
+  --font-h4: "Roboto", sans-serif;
+  --size-h4: 10px;
+
+  --font-h5: "Roboto", sans-serif;
+  --size-h5: 16px;
+
+  --font-h6: "Roboto", sans-serif;
+  --size-h6: 13px;
+
+  /* Subtitle / Body / Others */
+  --font-subtitle1: "Roboto", sans-serif;
+  --size-subtitle1: 16px;
+  --weight-subtitle1: 400;
+
+  --font-subtitle2: "Roboto", sans-serif;
+  --size-subtitle2: 14px;
+  --weight-subtitle2: 500;
+
+  --font-body1: "Roboto", sans-serif;
+  --size-body1: 16px;
+  --font-body2: "Roboto", sans-serif;
+  --size-body2: 16px;
+
+  --font-input: "Roboto", sans-serif;
+  --size-input: 12px;
+
+  --font-overline: "Roboto", sans-serif;
+  --size-overline: 10px;
+
+  --font-button: "Roboto", sans-serif;
+  --size-button: 14px;
+  --weight-button: 500;
+}
