@@ -1,5 +1,6 @@
 import axios from "axios";
 import News from "../models/news.models.js";
+import crypto from "crypto";
 import { uploadToCloudinary } from "../utils/uploadToCloudinary.js";
 
 // mediastack + local news(admin)
@@ -38,12 +39,15 @@ export const getAllNews = async (req, res) => {
   }
 };
 
-export const fecthDataNewsExternal = async (req, res) => {
-  try {
-    console.time("fetch data mediastack");
+// fucntion generate id
+function generateExternalId(item) {
+  return crypto.createHash("md5").update(item.url).digest("hex");
+}
 
-    const limit = parseInt(req.query.limit) || 10;
-    const skip = parseInt(req.query.skip) || 0;
+export const fecthAndSaveExternalNews = async (limit = 20, skip = 0) => {
+  try {
+    console.time("process External Data");
+    console.time("fetch data mediastack");
 
     const response = await axios.get(`http://api.mediastack.com/v1/news`, {
       params: {
@@ -53,23 +57,26 @@ export const fecthDataNewsExternal = async (req, res) => {
         offset: skip, // offset = skip
       },
     });
+
     console.log("response:", response.data);
     console.timeEnd("fetch data mediastack");
 
     const fetchedNews = response?.data?.data || [];
-    const totalExternalNews = response?.data?.pagination?.total || 0;
 
-    console.time("process External Data");
+    // generate externalId berdasarkan url
+    const externalId = fetchedNews.map((item) => generateExternalId(item));
 
-    // Ambil semua externalId yang ada di database untuk menghindari duplikasi
-    const existingExternalIds = new Set(
-      await News.find(
-        { externalId: { $in: fetchedNews.map((n) => n.id) } },
-        { externalId: 1 }
-      ).then((docs) => docs.map((d) => d.externalId))
+    // hindari duplikasi
+    const existingDocs = await News.find(
+      { externalId: { $in: externalId } },
+      { externalId: 1 }
     );
 
-    // Filter berita baru yang belum ada di database
+    const existingExternalIds = new Set(
+      existingDocs.map((doc) => doc.externalId)
+    );
+
+    // filter data baru
     const newNews = fetchedNews.filter(
       (item) => !existingExternalIds.has(item.id)
     );
@@ -84,7 +91,7 @@ export const fecthDataNewsExternal = async (req, res) => {
           category: item.category || "Other",
           newsImage: item.image,
           source: "external",
-          externalId: item.id,
+          externalId: generateExternalId(item),
           likes: 0,
           comments: 0,
           views: 0,
@@ -92,26 +99,32 @@ export const fecthDataNewsExternal = async (req, res) => {
         }))
       );
     }
-
-    // Ambil ulang data external dari database setelah penyimpanan
-    const externalNews = await News.find({ source: "external" })
-      .sort({ createdAt: -1 })
-      .skip(skip)
-      .limit(limit)
-      .lean();
-
-    res.json({
-      success: true,
-      totalExternalNews,
-      news: externalNews,
-    });
     console.timeEnd("process External Data");
   } catch (error) {
     console.error("Error fetching external news:", error.message);
   }
 };
 
-export const deleteNewsExternalId = async (req, res) => {
+export const fecthDataNewsExternal = async (req, res) => {
+  try {
+    const limit = parseInt(req.query.limit) || 10;
+    const skip = parseInt(req.query.skip) || 0;
+    await fecthAndSaveExternalNews(limit, skip);
+
+    const news = await News.find({ source: "external" })
+      .sort({ createdAt: -1 })
+      .skip(skip)
+      .limit(limit)
+      .lean();
+
+    res.status(200).json({ success: true, news });
+  } catch (error) {
+    console.error("Error fetching external news:", error.message);
+    res.status(500).json({ error: error.message });
+  }
+};
+
+export const deleteOldExternalNews = async () => {
   try {
     const oneWeekAgo = new Date();
     oneWeekAgo.setDate(oneWeekAgo.getDate() - 7);
@@ -120,9 +133,20 @@ export const deleteNewsExternalId = async (req, res) => {
       source: "external",
       createdAt: { $lt: oneWeekAgo },
     });
+    return result.deletedCount;
+  } catch (error) {
+    console.error("Error delete news:", error.message);
+    return 0; // supaya deleteNewsExternalId tetap bisa response nilai
+  }
+};
+
+export const deleteNewsExternalId = async (req, res) => {
+  try {
+    const deletedCount = await deleteOldExternalNews();
     res.status(200).json({
-      message: "News deleted successfully",
-      deleteCount: result.deletedCount,
+      message: "News deleted successfully.",
+      success: true,
+      deletedCount,
     });
   } catch (error) {
     console.error("Error delete news:", error.message);

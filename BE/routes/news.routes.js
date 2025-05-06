@@ -7,6 +7,8 @@ import {
 import {
   createNews,
   deleteNews,
+  deleteNewsExternalId,
+  fecthDataNewsExternal,
   getAllNews,
   getNewsById,
   getStatisticNewsById,
@@ -17,8 +19,20 @@ import {
 const router = express.Router();
 
 router.get("/", getAllNews);
+router.get(
+  "/external/fecth",
+  verifyCookieToken,
+  verifyAdmin,
+  fecthDataNewsExternal
+);
 router.post("/create", verifyCookieToken, verifyAdmin, createNews);
 router.put("/updated/:id", verifyCookieToken, verifyAdmin, updateNews);
+router.delete(
+  "/external/clean",
+  verifyCookieToken,
+  verifyAdmin,
+  deleteNewsExternalId
+);
 router.delete("/delete/:id", verifyCookieToken, verifyAdmin, deleteNews);
 router.get(
   "/stat/global",
