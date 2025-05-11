@@ -7,6 +7,7 @@ import { RxCaretRight } from "react-icons/rx";
 import { Swiper, SwiperSlide } from "swiper/react";
 import { Navigation, Pagination } from "swiper/modules";
 
+
 const cards = [
   {
     id: 1,

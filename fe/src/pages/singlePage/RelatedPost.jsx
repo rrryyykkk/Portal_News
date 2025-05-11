@@ -7,7 +7,7 @@ import { FaBookmark } from "react-icons/fa";
 // swiper
 import { Navigation, Pagination } from "swiper/modules";
 import { Swiper, SwiperSlide } from "swiper/react";
-import SwiperBtn from "../../../components/common/SwiperBtn";
+import SwiperBtn from "../../components/common/SwiperBtn";
 
 const posts = [
   {
@@ -132,7 +132,7 @@ const posts = [
   },
 ];
 
-const PopularPost = () => {
+const RelatedPost = () => {
   const swiperRef = useRef(null);
   const [isBeginning, setIsBeginning] = useState(true);
   const [isEnd, setIsEnd] = useState(false);
@@ -186,16 +186,17 @@ const PopularPost = () => {
   // screen === "mobile" ? "mobile" : screen === "tablet" ? "tablet" : "desktop";
   console.log("navVariant:", navVariant);
   return (
-    <div className="grid grid-cols-1">
+    <div className="grid grid-cols-1 py-5">
       {/* atas */}
       <div className="flex items-center gap-2 pt-5 pl-4 mb-5">
         <div className="h-3 w-1 bg-[var(--primary-color)] rounded-md mt-1"></div>
-        <h2 className="text-2xl font-bold">Popular Posts</h2>
+        <h2 className="text-2xl font-bold">RelatedPost</h2>
       </div>
       <div className="relative w-full h-[430px] px-4">
         {/* Tombol Panah  */}
         <SwiperBtn
           variant={navVariant}
+          variantName="related"
           isBeginning={isBeginning}
           isEnd={isEnd}
         />
@@ -210,8 +211,8 @@ const PopularPost = () => {
             1280: { slidesPerView: 4.2, spaceBetween: 20 },
           }}
           navigation={{
-            prevEl: `.${navVariant}-prev-popular`,
-            nextEl: `.${navVariant}-next-popular`,
+            prevEl: `.${navVariant}-prev-${"related"}`,
+            nextEl: `.${navVariant}-next-${"related"}`,
           }}
           pagination={{ clickable: true }}
           onSlideChange={handleSlideChange}
@@ -260,4 +261,4 @@ const PopularPost = () => {
   );
 };
 
-export default PopularPost;
+export default RelatedPost;

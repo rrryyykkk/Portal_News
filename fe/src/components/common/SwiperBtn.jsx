@@ -1,21 +1,26 @@
 import { RxCaretLeft } from "react-icons/rx";
 import { RxCaretRight } from "react-icons/rx";
 
-const SwiperBtn = ({ variant = "desktop", isBeginning, isEnd }) => {
+const SwiperBtn = ({
+  variant = "desktop",
+  variantName = "popular",
+  isBeginning,
+  isEnd,
+}) => {
   const prevClass = {
-    mobile: "swiper-button-prev-custom-mobile-popular",
-    tablet: "swiper-button-prev-custom-tablet-popular",
-    desktop: "swiper-button-prev-custom-popular",
+    mobile: `mobile-prev-${variantName}`,
+    tablet: `tablet-prev-${variantName}`,
+    desktop: `desktop-prev-${variantName}`,
   };
   const nexClass = {
-    mobile: "swiper-button-next-custom-mobile-popular",
-    tablet: "swiper-button-next-custom-tablet-popular",
-    desktop: "swiper-button-next-custom-popular",
+    mobile: `mobile-next-${variantName}`,
+    tablet: `tablet-next-${variantName}`,
+    desktop: `desktop-next-${variantName}`,
   };
 
   const leftPos = {
-    mobile: { left: "100px" },
-    tablet: { left: "100px" },
+    mobile: { left: "280px" },
+    tablet: { left: "620px" },
     desktop: { left: "1080px" },
   };
   return (

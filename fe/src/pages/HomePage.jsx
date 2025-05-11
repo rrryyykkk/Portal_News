@@ -1,7 +1,7 @@
 import Category from "../components/common/Category";
 import { Card } from "../components/home/Card";
 import BannerHome from "./home/post/BannerHome";
-import LatesetVideos from "./home/post/LatesetVideos";
+import LatestVideos from "./home/post/LatestVideos";
 import NewsPost from "./home/post/NewsPost";
 import PopularPost from "./home/post/PopularPost";
 import TopPost from "./home/post/TopPost";
@@ -16,7 +16,7 @@ const HomePage = () => {
       <PopularPost />
       <BannerHome />
       <NewsPost />
-      <LatesetVideos />
+      <LatestVideos />
       <TrendPost />
       <Weather />
       <TopPost />

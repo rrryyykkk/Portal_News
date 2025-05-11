@@ -3,6 +3,7 @@ import Login from "./pages/auth/Login";
 import Register from "./pages/auth/Register";
 import Layout from "./layout/Layout";
 import HomePage from "./pages/HomePage";
+import SinglePage from "./pages/SinglePage";
 
 function App() {
   return (
@@ -14,6 +15,14 @@ function App() {
         element={
           <Layout>
             <HomePage />
+          </Layout>
+        }
+      />
+      <Route
+        path="/news/:id"
+        element={
+          <Layout>
+            <SinglePage />
           </Layout>
         }
       />

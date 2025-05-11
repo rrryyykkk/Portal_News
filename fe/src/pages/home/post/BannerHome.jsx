@@ -1,7 +1,7 @@
 const BannerHome = () => {
   return (
     <div className="grid grid-cols-1 relative py-5">
-      <div className="hidden lg:block md:block">
+      <div className="block">
         <img
           src="/sport/06.jpg"
           alt=""
@@ -9,6 +9,7 @@ const BannerHome = () => {
         />
         <div className="grid grid-cols-3 md:grid-cols-1">
           {/* kiri */}
+          {/* dekstop */}
           <div className="hidden lg:block">
             <div className="absolute top-14 left-2">
               <img
@@ -19,16 +20,29 @@ const BannerHome = () => {
             </div>
           </div>
 
+          {/* mobile */}
+          <div className="block lg:hidden md:hidden sm:block">
+            <div className="absolute top-14 left-1">
+              <img
+                src="/team/calendar.jpg"
+                alt="calendar"
+                className="none-blur w-full h-80 rounded-xl"
+              />
+            </div>
+          </div>
+
+          {/* tengah */}
+          {/* dekstop */}
           <div className="hidden lg:block">
-            {/* tengah */}
             <div className="absolute top-14 left-85">
               <img
                 src="/team/club-table.jpg"
-                alt="calendar"
+                alt="club-table"
                 className="none-blur w-135 h-80 rounded-xl"
               />
             </div>
           </div>
+
           {/* kanan */}
           {/* dekstop */}
           <div className="hidden lg:block">
@@ -43,11 +57,11 @@ const BannerHome = () => {
 
           {/* tablet */}
           <div className="hidden lg:hidden md:block">
-            <div className="bg-white rounded-xl absolute top-14 lg:right-2 ">
+            <div className="bg-white rounded-xl absolute top-14 md:left-45 ">
               <img
                 src="/team/competition.png"
                 alt="calendar"
-                className="none-blur w-90 h-80 rounded-xl "
+                className="none-blur w-full h-80 rounded-xl "
               />
             </div>
           </div>
