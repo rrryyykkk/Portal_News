@@ -28,15 +28,15 @@ const MainContent = () => {
           <div className="flex flex-row justify-center gap-15 ">
             <div className="flex items-center gap-2">
               <MdOutlineDateRange />
-              <h4>{date}</h4>
+              <h4 className="text-sm">{date}</h4>
             </div>
             <div className="flex items-center gap-2">
               <MdOutlineComment />
-              <h4>{comments}</h4>
+              <h4 className="text-sm">{comments}</h4>
             </div>
             <div className="flex items-center gap-2">
               <MdOutlineCategory />
-              <h4>{category}</h4>
+              <h4 className="text-sm">{category}</h4>
             </div>
           </div>
         </div>

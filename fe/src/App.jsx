@@ -4,6 +4,7 @@ import Register from "./pages/auth/Register";
 import Layout from "./layout/Layout";
 import HomePage from "./pages/HomePage";
 import SinglePage from "./pages/SinglePage";
+import CategoryPage from "./pages/CategoryPage";
 
 function App() {
   return (
@@ -25,6 +26,15 @@ function App() {
             <SinglePage />
           </Layout>
         }
+      />
+      <Route
+        path="/category"
+        element={
+          <Layout>
+            <CategoryPage />
+          </Layout>
+        }
+        key="category"
       />
     </Routes>
   );

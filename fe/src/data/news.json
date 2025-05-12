@@ -1,0 +1,702 @@
+[
+  {
+    "id": 1,
+    "title": "Sample News 1",
+    "description": "Lorem ipsum dolor sit amet consectetur adipisicing elit.",
+    "img": "/animal/02.jpg",
+    "date": "06-10-2021",
+    "category": "education",
+    "bookmark": false,
+    "user": {
+      "id": 1,
+      "name": "John",
+      "img": "/avatar/01.jpg"
+    }
+  },
+  {
+    "id": 2,
+    "title": "Sample News 2",
+    "description": "Lorem ipsum dolor sit amet consectetur adipisicing elit.",
+    "img": "/car/02.jpg",
+    "date": "11-04-2024",
+    "category": "sports",
+    "bookmark": false,
+    "user": {
+      "id": 8,
+      "name": "Luna",
+      "img": "/avatar/08.jpg"
+    }
+  },
+  {
+    "id": 3,
+    "title": "Sample News 3",
+    "description": "Lorem ipsum dolor sit amet consectetur adipisicing elit.",
+    "img": "/weather/02.jpg",
+    "date": "27-09-2022",
+    "category": "technology",
+    "bookmark": false,
+    "user": {
+      "id": 3,
+      "name": "Alice",
+      "img": "/avatar/03.jpg"
+    }
+  },
+  {
+    "id": 4,
+    "title": "Sample News 4",
+    "description": "Lorem ipsum dolor sit amet consectetur adipisicing elit.",
+    "img": "/dance/01.jpg",
+    "date": "16-05-2023",
+    "category": "business",
+    "bookmark": false,
+    "user": {
+      "id": 4,
+      "name": "Emma",
+      "img": "/avatar/04.jpg"
+    }
+  },
+  {
+    "id": 5,
+    "title": "Sample News 5",
+    "description": "Lorem ipsum dolor sit amet consectetur adipisicing elit.",
+    "img": "/food/01.jpg",
+    "date": "31-05-2021",
+    "category": "technology",
+    "bookmark": false,
+    "user": {
+      "id": 1,
+      "name": "John",
+      "img": "/avatar/01.jpg"
+    }
+  },
+  {
+    "id": 6,
+    "title": "Sample News 6",
+    "description": "Lorem ipsum dolor sit amet consectetur adipisicing elit.",
+    "img": "/food/02.jpg",
+    "date": "14-11-2023",
+    "category": "technology",
+    "bookmark": false,
+    "user": {
+      "id": 3,
+      "name": "Alice",
+      "img": "/avatar/03.jpg"
+    }
+  },
+  {
+    "id": 7,
+    "title": "Sample News 7",
+    "description": "Lorem ipsum dolor sit amet consectetur adipisicing elit.",
+    "img": "/sport/02.jpg",
+    "date": "25-02-2021",
+    "category": "business",
+    "bookmark": false,
+    "user": {
+      "id": 1,
+      "name": "John",
+      "img": "/avatar/01.jpg"
+    }
+  },
+  {
+    "id": 8,
+    "title": "Sample News 8",
+    "description": "Lorem ipsum dolor sit amet consectetur adipisicing elit.",
+    "img": "/technology/02.jpg",
+    "date": "12-10-2022",
+    "category": "technology",
+    "bookmark": false,
+    "user": {
+      "id": 4,
+      "name": "Emma",
+      "img": "/avatar/04.jpg"
+    }
+  },
+  {
+    "id": 9,
+    "title": "Sample News 9",
+    "description": "Lorem ipsum dolor sit amet consectetur adipisicing elit.",
+    "img": "/animal/05.jpg",
+    "date": "28-02-2024",
+    "category": "health",
+    "bookmark": false,
+    "user": {
+      "id": 8,
+      "name": "Luna",
+      "img": "/avatar/08.jpg"
+    }
+  },
+  {
+    "id": 10,
+    "title": "Sample News 10",
+    "description": "Lorem ipsum dolor sit amet consectetur adipisicing elit.",
+    "img": "/sport/01.jpg",
+    "date": "05-05-2023",
+    "category": "sports",
+    "bookmark": false,
+    "user": {
+      "id": 2,
+      "name": "Jane",
+      "img": "/avatar/02.jpg"
+    }
+  },
+  {
+    "id": 11,
+    "title": "Sample News 11",
+    "description": "Lorem ipsum dolor sit amet consectetur adipisicing elit.",
+    "img": "/technology/04.jpg",
+    "date": "05-04-2023",
+    "category": "business",
+    "bookmark": false,
+    "user": {
+      "id": 5,
+      "name": "Bob",
+      "img": "/avatar/05.jpg"
+    }
+  },
+  {
+    "id": 12,
+    "title": "Sample News 12",
+    "description": "Lorem ipsum dolor sit amet consectetur adipisicing elit.",
+    "img": "/car/01.jpg",
+    "date": "31-12-2022",
+    "category": "entertainment",
+    "bookmark": false,
+    "user": {
+      "id": 3,
+      "name": "Alice",
+      "img": "/avatar/03.jpg"
+    }
+  },
+  {
+    "id": 13,
+    "title": "Sample News 13",
+    "description": "Lorem ipsum dolor sit amet consectetur adipisicing elit.",
+    "img": "/team/04.jpg",
+    "date": "24-08-2021",
+    "category": "technology",
+    "bookmark": false,
+    "user": {
+      "id": 1,
+      "name": "John",
+      "img": "/avatar/01.jpg"
+    }
+  },
+  {
+    "id": 14,
+    "title": "Sample News 14",
+    "description": "Lorem ipsum dolor sit amet consectetur adipisicing elit.",
+    "img": "/dance/04.jpg",
+    "date": "08-01-2024",
+    "category": "science",
+    "bookmark": false,
+    "user": {
+      "id": 3,
+      "name": "Alice",
+      "img": "/avatar/03.jpg"
+    }
+  },
+  {
+    "id": 15,
+    "title": "Sample News 15",
+    "description": "Lorem ipsum dolor sit amet consectetur adipisicing elit.",
+    "img": "/music/03.jpg",
+    "date": "13-01-2024",
+    "category": "technology",
+    "bookmark": false,
+    "user": {
+      "id": 8,
+      "name": "Luna",
+      "img": "/avatar/08.jpg"
+    }
+  },
+  {
+    "id": 16,
+    "title": "Sample News 16",
+    "description": "Lorem ipsum dolor sit amet consectetur adipisicing elit.",
+    "img": "/music/04.jpg",
+    "date": "11-02-2023",
+    "category": "business",
+    "bookmark": false,
+    "user": {
+      "id": 5,
+      "name": "Bob",
+      "img": "/avatar/05.jpg"
+    }
+  },
+  {
+    "id": 17,
+    "title": "Sample News 17",
+    "description": "Lorem ipsum dolor sit amet consectetur adipisicing elit.",
+    "img": "/music/01.jpg",
+    "date": "15-09-2022",
+    "category": "entertainment",
+    "bookmark": false,
+    "user": {
+      "id": 4,
+      "name": "Emma",
+      "img": "/avatar/04.jpg"
+    }
+  },
+  {
+    "id": 18,
+    "title": "Sample News 18",
+    "description": "Lorem ipsum dolor sit amet consectetur adipisicing elit.",
+    "img": "/music/01.jpg",
+    "date": "11-07-2022",
+    "category": "entertainment",
+    "bookmark": false,
+    "user": {
+      "id": 7,
+      "name": "Liam",
+      "img": "/avatar/07.jpg"
+    }
+  },
+  {
+    "id": 19,
+    "title": "Sample News 19",
+    "description": "Lorem ipsum dolor sit amet consectetur adipisicing elit.",
+    "img": "/sport/01.jpg",
+    "date": "20-02-2021",
+    "category": "entertainment",
+    "bookmark": false,
+    "user": {
+      "id": 3,
+      "name": "Alice",
+      "img": "/avatar/11.jpg"
+    }
+  },
+  {
+    "id": 20,
+    "title": "Sample News 20",
+    "description": "Lorem ipsum dolor sit amet consectetur adipisicing elit.",
+    "img": "/music/03.jpg",
+    "date": "15-11-2021",
+    "category": "education",
+    "bookmark": false,
+    "user": {
+      "id": 2,
+      "name": "Jane",
+      "img": "/avatar/12.jpg"
+    }
+  },
+  {
+    "id": 21,
+    "title": "Sample News 21",
+    "description": "Lorem ipsum dolor sit amet consectetur adipisicing elit.",
+    "img": "/technology/03.jpg",
+    "date": "05-12-2021",
+    "category": "technology",
+    "bookmark": false,
+    "user": {
+      "id": 3,
+      "name": "Alice",
+      "img": "/avatar/13.jpg"
+    }
+  },
+  {
+    "id": 22,
+    "title": "Sample News 22",
+    "description": "Lorem ipsum dolor sit amet consectetur adipisicing elit.",
+    "img": "/animal/01.jpg",
+    "date": "16-11-2021",
+    "category": "entertainment",
+    "bookmark": false,
+    "user": {
+      "id": 4,
+      "name": "Emma",
+      "img": "/avatar/04.jpg"
+    }
+  },
+  {
+    "id": 23,
+    "title": "Sample News 23",
+    "description": "Lorem ipsum dolor sit amet consectetur adipisicing elit.",
+    "img": "/music/04.jpg",
+    "date": "24-03-2021",
+    "category": "entertainment",
+    "bookmark": false,
+    "user": {
+      "id": 1,
+      "name": "John",
+      "img": "/avatar/10.jpg"
+    }
+  },
+  {
+    "id": 24,
+    "title": "Sample News 24",
+    "description": "Lorem ipsum dolor sit amet consectetur adipisicing elit.",
+    "img": "/animal/01.jpg",
+    "date": "08-04-2024",
+    "category": "entertainment",
+    "bookmark": false,
+    "user": {
+      "id": 5,
+      "name": "Bob",
+      "img": "/avatar/05.jpg"
+    }
+  },
+  {
+    "id": 25,
+    "title": "Sample News 25",
+    "description": "Lorem ipsum dolor sit amet consectetur adipisicing elit.",
+    "img": "/technology/02.jpg",
+    "date": "27-07-2023",
+    "category": "entertainment",
+    "bookmark": false,
+    "user": {
+      "id": 4,
+      "name": "Emma",
+      "img": "/avatar/04.jpg"
+    }
+  },
+  {
+    "id": 26,
+    "title": "Sample News 26",
+    "description": "Lorem ipsum dolor sit amet consectetur adipisicing elit.",
+    "img": "/technology/02.jpg",
+    "date": "14-09-2022",
+    "category": "health",
+    "bookmark": false,
+    "user": {
+      "id": 4,
+      "name": "Emma",
+      "img": "/avatar/04.jpg"
+    }
+  },
+  {
+    "id": 27,
+    "title": "Sample News 27",
+    "description": "Lorem ipsum dolor sit amet consectetur adipisicing elit.",
+    "img": "/technology/01.jpg",
+    "date": "23-05-2023",
+    "category": "health",
+    "bookmark": false,
+    "user": {
+      "id": 7,
+      "name": "Liam",
+      "img": "/avatar/07.jpg"
+    }
+  },
+  {
+    "id": 28,
+    "title": "Sample News 28",
+    "description": "Lorem ipsum dolor sit amet consectetur adipisicing elit.",
+    "img": "/technology/03.jpg",
+    "date": "05-10-2021",
+    "category": "sports",
+    "bookmark": false,
+    "user": {
+      "id": 1,
+      "name": "John",
+      "img": "/avatar/01.jpg"
+    }
+  },
+  {
+    "id": 29,
+    "title": "Sample News 29",
+    "description": "Lorem ipsum dolor sit amet consectetur adipisicing elit.",
+    "img": "/animal/02.jpg",
+    "date": "06-07-2022",
+    "category": "health",
+    "bookmark": false,
+    "user": {
+      "id": 1,
+      "name": "John",
+      "img": "/avatar/11.jpg"
+    }
+  },
+  {
+    "id": 30,
+    "title": "Sample News 30",
+    "description": "Lorem ipsum dolor sit amet consectetur adipisicing elit.",
+    "img": "/animal/05.jpg",
+    "date": "02-09-2022",
+    "category": "travel",
+    "bookmark": false,
+    "user": {
+      "id": 5,
+      "name": "Bob",
+      "img": "/avatar/10.jpg"
+    }
+  },
+  {
+    "id": 31,
+    "title": "Sample News 31",
+    "description": "Lorem ipsum dolor sit amet consectetur adipisicing elit.",
+    "img": "/animal/03.jpg",
+    "date": "27-05-2023",
+    "category": "education",
+    "bookmark": false,
+    "user": {
+      "id": 3,
+      "name": "Alice",
+      "img": "/avatar/03.jpg"
+    }
+  },
+  {
+    "id": 32,
+    "title": "Sample News 32",
+    "description": "Lorem ipsum dolor sit amet consectetur adipisicing elit.",
+    "img": "/animal/04.jpg",
+    "date": "20-07-2021",
+    "category": "science",
+    "bookmark": false,
+    "user": {
+      "id": 6,
+      "name": "Sophia",
+      "img": "/avatar/06.jpg"
+    }
+  },
+  {
+    "id": 33,
+    "title": "Sample News 33",
+    "description": "Lorem ipsum dolor sit amet consectetur adipisicing elit.",
+    "img": "/abstract/01.jpg",
+    "date": "28-09-2023",
+    "category": "technology",
+    "bookmark": false,
+    "user": {
+      "id": 6,
+      "name": "Sophia",
+      "img": "/avatar/06.jpg"
+    }
+  },
+  {
+    "id": 34,
+    "title": "Sample News 34",
+    "description": "Lorem ipsum dolor sit amet consectetur adipisicing elit.",
+    "img": "/abstract/01.jpg",
+    "date": "10-01-2021",
+    "category": "health",
+    "bookmark": false,
+    "user": {
+      "id": 1,
+      "name": "John",
+      "img": "/avatar/11.jpg"
+    }
+  },
+  {
+    "id": 35,
+    "title": "Sample News 35",
+    "description": "Lorem ipsum dolor sit amet consectetur adipisicing elit.",
+    "img": "/weather/01.jpg",
+    "date": "09-03-2024",
+    "category": "travel",
+    "bookmark": false,
+    "user": {
+      "id": 1,
+      "name": "John",
+      "img": "/avatar/11.jpg"
+    }
+  },
+  {
+    "id": 36,
+    "title": "Sample News 36",
+    "description": "Lorem ipsum dolor sit amet consectetur adipisicing elit.",
+    "img": "/city/04.jpg",
+    "date": "31-05-2023",
+    "category": "business",
+    "bookmark": false,
+    "user": {
+      "id": 7,
+      "name": "Liam",
+      "img": "/avatar/07.jpg"
+    }
+  },
+  {
+    "id": 37,
+    "title": "Sample News 37",
+    "description": "Lorem ipsum dolor sit amet consectetur adipisicing elit.",
+    "img": "/car/03.jpg",
+    "date": "10-09-2021",
+    "category": "health",
+    "bookmark": false,
+    "user": {
+      "id": 3,
+      "name": "Alice",
+      "img": "/avatar/13.jpg"
+    }
+  },
+  {
+    "id": 38,
+    "title": "Sample News 38",
+    "description": "Lorem ipsum dolor sit amet consectetur adipisicing elit.",
+    "img": "/animal/01.jpg",
+    "date": "28-10-2022",
+    "category": "entertainment",
+    "bookmark": false,
+    "user": {
+      "id": 2,
+      "name": "Jane",
+      "img": "/avatar/02.jpg"
+    }
+  },
+  {
+    "id": 39,
+    "title": "Sample News 39",
+    "description": "Lorem ipsum dolor sit amet consectetur adipisicing elit.",
+    "img": "/animal/03.jpg",
+    "date": "14-09-2021",
+    "category": "science",
+    "bookmark": false,
+    "user": {
+      "id": 5,
+      "name": "Bob",
+      "img": "/avatar/05.jpg"
+    }
+  },
+  {
+    "id": 40,
+    "title": "Sample News 40",
+    "description": "Lorem ipsum dolor sit amet consectetur adipisicing elit.",
+    "img": "/dance/04.jpg",
+    "date": "17-12-2021",
+    "category": "science",
+    "bookmark": false,
+    "user": {
+      "id": 3,
+      "name": "Alice",
+      "img": "/avatar/13.jpg"
+    }
+  },
+  {
+    "id": 41,
+    "title": "Sample News 41",
+    "description": "Lorem ipsum dolor sit amet consectetur adipisicing elit.",
+    "img": "/technology/02.jpg",
+    "date": "01-05-2022",
+    "category": "technology",
+    "bookmark": false,
+    "user": {
+      "id": 4,
+      "name": "Emma",
+      "img": "/avatar/04.jpg"
+    }
+  },
+  {
+    "id": 42,
+    "title": "Sample News 42",
+    "description": "Lorem ipsum dolor sit amet consectetur adipisicing elit.",
+    "img": "/food/04.jpg",
+    "date": "21-03-2021",
+    "category": "travel",
+    "bookmark": false,
+    "user": {
+      "id": 2,
+      "name": "Jane",
+      "img": "/avatar/12.jpg"
+    }
+  },
+  {
+    "id": 43,
+    "title": "Sample News 43",
+    "description": "Lorem ipsum dolor sit amet consectetur adipisicing elit.",
+    "img": "/car/02.jpg",
+    "date": "09-06-2023",
+    "category": "health",
+    "bookmark": false,
+    "user": {
+      "id": 6,
+      "name": "Sophia",
+      "img": "/avatar/06.jpg"
+    }
+  },
+  {
+    "id": 44,
+    "title": "Sample News 44",
+    "description": "Lorem ipsum dolor sit amet consectetur adipisicing elit.",
+    "img": "/city/05.jpg",
+    "date": "16-09-2021",
+    "category": "health",
+    "bookmark": false,
+    "user": {
+      "id": 4,
+      "name": "Emma",
+      "img": "/avatar/04.jpg"
+    }
+  },
+  {
+    "id": 45,
+    "title": "Sample News 45",
+    "description": "Lorem ipsum dolor sit amet consectetur adipisicing elit.",
+    "img": "/team/01.jpg",
+    "date": "28-08-2021",
+    "category": "travel",
+    "bookmark": false,
+    "user": {
+      "id": 2,
+      "name": "Jane",
+      "img": "/avatar/12.jpg"
+    }
+  },
+  {
+    "id": 46,
+    "title": "Sample News 46",
+    "description": "Lorem ipsum dolor sit amet consectetur adipisicing elit.",
+    "img": "/sport/02.jpg",
+    "date": "15-06-2023",
+    "category": "education",
+    "bookmark": false,
+    "user": {
+      "id": 3,
+      "name": "Alice",
+      "img": "/avatar/13.jpg"
+    }
+  },
+  {
+    "id": 47,
+    "title": "Sample News 47",
+    "description": "Lorem ipsum dolor sit amet consectetur adipisicing elit.",
+    "img": "/car/02.jpg",
+    "date": "28-02-2024",
+    "category": "sports",
+    "bookmark": false,
+    "user": {
+      "id": 1,
+      "name": "John",
+      "img": "/avatar/11.jpg"
+    }
+  },
+  {
+    "id": 48,
+    "title": "Sample News 48",
+    "description": "Lorem ipsum dolor sit amet consectetur adipisicing elit.",
+    "img": "/technology/03.jpg",
+    "date": "13-01-2022",
+    "category": "technology",
+    "bookmark": false,
+    "user": {
+      "id": 2,
+      "name": "Jane",
+      "img": "/avatar/02.jpg"
+    }
+  },
+  {
+    "id": 49,
+    "title": "Sample News 49",
+    "description": "Lorem ipsum dolor sit amet consectetur adipisicing elit.",
+    "img": "/animal/02.jpg",
+    "date": "28-12-2022",
+    "category": "education",
+    "bookmark": false,
+    "user": {
+      "id": 5,
+      "name": "Bob",
+      "img": "/avatar/05.jpg"
+    }
+  },
+  {
+    "id": 50,
+    "title": "Sample News 50",
+    "description": "Lorem ipsum dolor sit amet consectetur adipisicing elit.",
+    "img": "/abstract/03.jpg",
+    "date": "19-07-2023",
+    "category": "education",
+    "bookmark": false,
+    "user": {
+      "id": 3,
+      "name": "Alice",
+      "img": "/avatar/03.jpg"
+    }
+  }
+]
