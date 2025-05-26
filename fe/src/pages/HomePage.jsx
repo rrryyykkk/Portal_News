@@ -8,18 +8,18 @@ import TopPost from "./home/post/TopPost";
 import TrendPost from "./home/post/TrendPost";
 import Weather from "./home/Weather";
 
-const HomePage = () => {
+const HomePage = ({ news }) => {
   return (
     <div className="min-h-screen bg-white">
-      <Category />
+      <Category news={news} />
       <Card />
-      <PopularPost />
+      <PopularPost news={news} />
       <BannerHome />
-      <NewsPost />
+      <NewsPost news={news} />
       <LatestVideos />
-      <TrendPost />
-      <Weather />
-      <TopPost />
+      <TrendPost news={news} />
+      <Weather news={news} />
+      <TopPost news={news} />
     </div>
   );
 };

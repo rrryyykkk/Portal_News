@@ -1,10 +1,10 @@
 import Footer from "../components/Footer";
 import Navbar from "../components/Navbar";
 
-const Layout = ({ children }) => {
+const Layout = ({ children, meUser, news }) => {
   return (
     <div className="min-h-screen bg-gray-100">
-      <Navbar />
+      <Navbar meUser={meUser} news={news} />
       {children}
       <Footer />
     </div>

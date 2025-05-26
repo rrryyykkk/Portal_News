@@ -1,22 +1,28 @@
 import { useState, useEffect } from "react";
+import { useParams } from "react-router-dom";
 import PageHeaders from "../components/PageHeaders";
-import newsData from "../data/news.json";
-
-// icons
-import { CiGrid41 } from "react-icons/ci";
-import { CiGrid2H } from "react-icons/ci";
-import CardCategory from "../components/category/Card";
+import CardCategory from "../components/category/CardCategory";
+import Category from "../components/common/Category";
+import { CiGrid41, CiGrid2H } from "react-icons/ci";
 
 const postTypes = ["New", "Trend", "Popular", "Top"];
 
-const CategoryPage = () => {
-  const [news, setNews] = useState(newsData);
+const CategoryPage = ({ news: allNews }) => {
+  const { categoryName } = useParams();
+
+  const [news, setNews] = useState([]);
   const [activePost, setActivePost] = useState("New");
   const [layout, setLayout] = useState("grid");
   const [screen, setScreen] = useState("desktop");
   const [currentPage, setCurrentPage] = useState(1);
 
-  // Determine screen size
+  useEffect(() => {
+    const filtered = allNews.filter(
+      (item) => item.category.toLowerCase() === categoryName.toLowerCase()
+    );
+    setNews(filtered);
+  }, [categoryName, allNews]);
+
   useEffect(() => {
     const mobile = window.matchMedia("(max-width: 640px)");
     const tablet = window.matchMedia(
@@ -50,14 +56,13 @@ const CategoryPage = () => {
   }, []);
 
   const handleBookmark = (id) => {
-    setNews((prevNews) =>
-      prevNews.map((item) =>
+    setNews((prev) =>
+      prev.map((item) =>
         item.id === id ? { ...item, bookmark: !item.bookmark } : item
       )
     );
   };
 
-  // Determine how many items to show per page
   const itemsPerPage = screen === "mobile" ? 5 : screen === "tablet" ? 10 : 12;
   const totalPages = Math.ceil(news.length / itemsPerPage);
   const paginatedNews = news.slice(
@@ -67,11 +72,16 @@ const CategoryPage = () => {
 
   return (
     <main className="grid grid-cols-1">
-      <PageHeaders curPage="Category" title={news[0].category} />
+      <PageHeaders
+        curPage="Category"
+        title={news[0]?.category || categoryName}
+      />
 
-      {/* Filter & Layout Switcher */}
+      {/* Kategori */}
+      <Category news={allNews} />
+
+      {/* Filter & Layout */}
       <div className="flex flex-col md:flex-row md:items-center md:justify-between bg-gray-200 p-2 gap-2">
-        {/* Filter (Inactive for now) */}
         <div className="flex gap-2 flex-wrap">
           {postTypes.map((item) => (
             <button
@@ -88,7 +98,6 @@ const CategoryPage = () => {
           ))}
         </div>
 
-        {/* Layout Switcher (Visible only on desktop) */}
         {screen === "desktop" && (
           <div className="flex gap-2 justify-end">
             <CiGrid41
@@ -114,39 +123,47 @@ const CategoryPage = () => {
       </div>
 
       {/* Content */}
-      <div
-        className={
-          layout === "grid"
-            ? "grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4 p-4"
-            : "flex flex-col gap-4 p-4"
-        }
-      >
-        {paginatedNews.map((item) => (
-          <CardCategory
-            key={item.id}
-            data={item}
-            layout={layout}
-            onBookmark={handleBookmark}
-          />
-        ))}
-      </div>
+      {paginatedNews.length > 0 ? (
+        <div
+          className={
+            layout === "grid"
+              ? "grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4 p-4"
+              : "flex flex-col gap-4 p-4"
+          }
+        >
+          {paginatedNews.map((item) => (
+            <CardCategory
+              key={item.id}
+              data={item}
+              layout={layout}
+              onBookmark={handleBookmark}
+            />
+          ))}
+        </div>
+      ) : (
+        <p className="text-center py-10 text-gray-500">
+          Belum ada berita pada kategori <b>{categoryName}</b>.
+        </p>
+      )}
 
       {/* Pagination */}
-      <div className="flex justify-center items-center gap-2 py-4">
-        {Array.from({ length: totalPages }, (_, i) => i + 1).map((num) => (
-          <button
-            key={num}
-            onClick={() => setCurrentPage(num)}
-            className={`w-8 h-8 rounded-full flex items-center justify-center border ${
-              currentPage === num
-                ? "bg-[var(--primary-color)] text-white"
-                : "bg-white text-black"
-            }`}
-          >
-            {num}
-          </button>
-        ))}
-      </div>
+      {totalPages > 1 && (
+        <div className="flex justify-center items-center gap-2 py-4">
+          {Array.from({ length: totalPages }, (_, i) => i + 1).map((num) => (
+            <button
+              key={num}
+              onClick={() => setCurrentPage(num)}
+              className={`w-8 h-8 rounded-full flex items-center justify-center border cursor-pointer ${
+                currentPage === num
+                  ? "bg-[var(--primary-color)] text-white"
+                  : "bg-white text-black"
+              }`}
+            >
+              {num}
+            </button>
+          ))}
+        </div>
+      )}
     </main>
   );
 };

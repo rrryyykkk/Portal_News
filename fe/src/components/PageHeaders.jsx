@@ -10,8 +10,8 @@ const PageHeaders = ({ curPage, title }) => {
             Home
           </Link>
         </li>
-        <li className="text-gray-700">{curPage}</li>
-        <li className="text-[var(--primary-color)]">{title}</li>
+        {curPage && <li className="text-gray-700">{curPage}</li>}
+        {title && <li className="text-gray-700">{title}</li>}
       </ul>
     </div>
   );
