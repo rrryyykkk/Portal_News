@@ -76,21 +76,18 @@ const Navbar = ({ meUser, news = [] }) => {
     return () => window.removeEventListener("scroll", handleScroll);
   }, []);
 
-  // Get unique category list from news
   const CategoryOptions = Array.from(
     new Set(news.map((item) => item.category))
   ).filter(Boolean);
 
   return (
     <>
-      {/* Navbar */}
       <div
         className={`${
           isScrolled ? "fixed top-0 bg-gray-100" : "relative bg-gray-100"
         } top-0 z-50 w-full`}
       >
         <div className="flex justify-between items-center px-6 h-20">
-          {/* Left Side */}
           <div className="flex items-center gap-4">
             <button
               onClick={() => setMenuOpen(!menuOpen)}
@@ -106,7 +103,6 @@ const Navbar = ({ meUser, news = [] }) => {
               ZYnnn.news
             </Link>
 
-            {/* Desktop Nav Links */}
             <div className="hidden lg:flex gap-8 text-sm font-medium text-gray-600 ml-8">
               <div className="dropdown dropdown-hover">
                 <div
@@ -145,7 +141,6 @@ const Navbar = ({ meUser, news = [] }) => {
             </div>
           </div>
 
-          {/* Right Side */}
           <div className="flex items-center gap-4">
             <div className="relative block md:hidden lg:block w-fit lg:w-80">
               <input
@@ -167,7 +162,6 @@ const Navbar = ({ meUser, news = [] }) => {
           </div>
         </div>
 
-        {/* Search Input for Tablet only */}
         <div className="px-6 py-1 hidden md:block lg:hidden bg-white shadow-md">
           <div className="relative w-full">
             <input
@@ -188,7 +182,7 @@ const Navbar = ({ meUser, news = [] }) => {
             onClick={() => setMenuOpen(false)}
           ></div>
 
-          <div className="fixed top-0 left-0 h-full w-64 bg-white shadow-lg z-50">
+          <div className="fixed top-0 left-0 h-full w-64 bg-white shadow-lg z-50 overflow-y-auto max-h-screen scrollbar-none">
             <div className="flex flex-col justify-between h-full p-6 text-gray-700 text-sm">
               <div className="flex flex-col gap-4">
                 <button
@@ -221,7 +215,7 @@ const Navbar = ({ meUser, news = [] }) => {
                   <Link
                     key={link.name}
                     to={link.path}
-                    className="hover:text-[var(--primary-color)] hover:bg-gray-200 p-2 rounded-md"
+                    className="hover:text-[var(--primary-color)] hover:bg-gray-200 p-2 rounded-md font-bold"
                     onClick={() => setMenuOpen(false)}
                   >
                     {link.name}
@@ -233,16 +227,19 @@ const Navbar = ({ meUser, news = [] }) => {
               {/* Bottom Sidebar */}
               <div className="flex flex-col gap-4">
                 <div className="block md:hidden cursor-pointer hover:bg-gray-200 p-2 rounded-md">
-                  <div className="flex items-center gap-2 hover:text-[var(--primary-color)]">
+                  <Link
+                    to="/profile/me"
+                    className="flex items-center gap-2 hover:text-[var(--primary-color)]"
+                  >
                     <img
                       className="w-10 rounded-full ring ring-red-500 ring-offset-2 ring-offset-white"
                       src={meUser?.avatarUrl || "/default.jpg"}
                       alt="User"
                     />
                     <h2 className="font-bold">{meUser?.userName || "Guest"}</h2>
-                  </div>
+                  </Link>
                 </div>
-                <button className="flex items-center gap-2 hover:text-[var(--primary-color)]">
+                <button className="flex items-center gap-2 hover:text-[var(--primary-color)] mb-5 cursor-pointer">
                   <IoIosLogOut className="text-[var(--primary-color)] h-7 w-7" />
                   <h2 className="text-lg font-bold">Log Out</h2>
                 </button>

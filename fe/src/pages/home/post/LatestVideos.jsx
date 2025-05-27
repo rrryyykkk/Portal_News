@@ -5,49 +5,6 @@ import { Navigation, Pagination } from "swiper/modules";
 import { FaPlay, FaPause } from "react-icons/fa";
 import { RxCaretLeft, RxCaretRight } from "react-icons/rx";
 
-import "swiper/css";
-import "swiper/css/navigation";
-import "swiper/css/pagination";
-
-const videos = [
-  {
-    id: 1,
-    video: "/videos/1.mp4",
-    title: "Video 1",
-    description: "Description 1",
-  },
-  {
-    id: 2,
-    video: "/videos/2.mp4",
-    title: "Video 2",
-    description: "Description 2",
-  },
-  {
-    id: 3,
-    video: "/videos/3.mp4",
-    title: "Video 3",
-    description: "Description 3",
-  },
-  {
-    id: 4,
-    video: "/videos/4.mp4",
-    title: "Video 4",
-    description: "Description 4",
-  },
-  {
-    id: 5,
-    video: "/videos/5.mp4",
-    title: "Video 5",
-    description: "Description 5",
-  },
-  {
-    id: 6,
-    video: "/videos/6.mp4",
-    title: "Video 6",
-    description: "Description 6",
-  },
-];
-
 const groupVideos = (videos, groupSize) => {
   const groups = [];
   for (let i = 0; i < videos.length; i += groupSize) {
@@ -55,20 +12,20 @@ const groupVideos = (videos, groupSize) => {
   }
   return groups;
 };
+
 const VideoCard = ({
-  video,
   setSelectedVideo,
   videoRefs,
   playingVideoId,
   handlePlayClick,
   handlePlay,
   handlePause,
+  video,
 }) => (
   <div
     onClick={() => setSelectedVideo(video)}
     className="flex flex-col shadow rounded-lg bg-white relative w-full"
   >
-    {/* Responsive video with aspect ratio */}
     <div className="aspect-video w-full overflow-hidden rounded-t-lg relative">
       <video
         src={video.video}
@@ -78,7 +35,6 @@ const VideoCard = ({
         className="w-full h-full object-cover cursor-pointer"
         muted
       />
-      {/* Play/Pause Button (Mobile Only) */}
       <div className="block lg:hidden">
         {playingVideoId === video.id ? (
           <button
@@ -104,7 +60,6 @@ const VideoCard = ({
       </div>
     </div>
 
-    {/* Text Content */}
     <div className="p-3">
       <h3 className="text-sm font-bold truncate">{video.title}</h3>
       <p className="text-xs text-gray-700 line-clamp-2">{video.description}</p>
@@ -112,7 +67,7 @@ const VideoCard = ({
   </div>
 );
 
-const LatestVideos = () => {
+const LatestVideos = ({ videos }) => {
   const [selectedVideo, setSelectedVideo] = useState(videos[0]);
   const [playingVideoId, setPlayingVideoId] = useState(null);
   const [isBeginning, setIsBeginning] = useState(true);
@@ -159,13 +114,13 @@ const LatestVideos = () => {
   };
 
   const handlePlay = (id) => setPlayingVideoId(id);
+
   const handlePause = (id) => {
     if (playingVideoId === id) setPlayingVideoId(null);
   };
 
   return (
     <div className="grid grid-rows-1 bg-gray-100 min-h-screen">
-      {/* Header */}
       <div className="flex justify-between items-center px-5 pt-5">
         <div className="flex items-center gap-2">
           <div className="h-3 w-1 bg-[var(--primary-color)] rounded-md mt-1"></div>
@@ -182,7 +137,6 @@ const LatestVideos = () => {
         </div>
       </div>
 
-      {/* Video List */}
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-4 p-5">
         {/* Highlight Video */}
         <div className="hidden lg:block">
@@ -226,9 +180,8 @@ const LatestVideos = () => {
         </div>
 
         {/* Video Carousel */}
-        <div className="relative w-full min-h-[350px] max-h-[90vh] px-4 ">
-          {/* Navigation Buttons */}
-          {isTablet ? (
+        <div className="relative w-full min-h-[350px] max-h-[90vh] px-4">
+          {isTablet || isMobile ? (
             <>
               <div
                 className={`swiper-button-prev-custom-mobile absolute top-1/2 left-10 z-10 -translate-y-1/2 bg-white p-2 rounded-lg shadow ${
@@ -239,23 +192,6 @@ const LatestVideos = () => {
               </div>
               <div
                 className={`swiper-button-next-custom-mobile absolute top-1/2 right-10 z-10 -translate-y-1/2 bg-white p-2 rounded-lg shadow ${
-                  isEnd ? "opacity-30 pointer-events-none" : ""
-                }`}
-              >
-                <RxCaretRight className="w-6 h-6 text-black" />
-              </div>
-            </>
-          ) : isMobile ? (
-            <>
-              <div
-                className={`swiper-button-prev-custom-mobile absolute top-25 left-10 z-10 -translate-y-1/2 bg-white p-2 rounded-lg shadow ${
-                  isBeginning ? "opacity-30 pointer-events-none" : ""
-                }`}
-              >
-                <RxCaretLeft className="w-6 h-6 text-black" />
-              </div>
-              <div
-                className={`swiper-button-next-custom-mobile absolute top-25 right-10 z-10 -translate-y-1/2 bg-white p-2 rounded-lg shadow ${
                   isEnd ? "opacity-30 pointer-events-none" : ""
                 }`}
               >
