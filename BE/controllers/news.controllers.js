@@ -41,10 +41,11 @@ export const getAllNews = async (req, res) => {
 
 // fucntion generate id
 function generateExternalId(item) {
+  if (!item.url) return crypto.randomUUID(); // fallback
   return crypto.createHash("md5").update(item.url).digest("hex");
 }
 
-export const fecthAndSaveExternalNews = async (limit = 20, skip = 0) => {
+export const fecthAndSaveExternalNews = async (limit = 40, skip = 0) => {
   try {
     console.time("process External Data");
     console.time("fetch data mediastack");
@@ -58,17 +59,25 @@ export const fecthAndSaveExternalNews = async (limit = 20, skip = 0) => {
       },
     });
 
-    console.log("response:", response.data);
     console.timeEnd("fetch data mediastack");
 
     const fetchedNews = response?.data?.data || [];
 
-    // generate externalId berdasarkan url
-    const externalId = fetchedNews.map((item) => generateExternalId(item));
+    // Validasi & filter item yang lengkap dan punya URL
+    const validNews = fetchedNews.filter(
+      (item) =>
+        item.title &&
+        item.description &&
+        item.url && // penting untuk generate ID
+        item.published_at
+    );
 
-    // hindari duplikasi
+    // Buat daftar externalId dari data valid
+    const externalIds = validNews.map((item) => generateExternalId(item));
+
+    // Cari ID yang sudah ada di database
     const existingDocs = await News.find(
-      { externalId: { $in: externalId } },
+      { externalId: { $in: externalIds } },
       { externalId: 1 }
     );
 
@@ -76,20 +85,21 @@ export const fecthAndSaveExternalNews = async (limit = 20, skip = 0) => {
       existingDocs.map((doc) => doc.externalId)
     );
 
-    // filter data baru
-    const newNews = fetchedNews.filter(
-      (item) => !existingExternalIds.has(item.id)
-    );
+    // Ambil data baru yang belum tersimpan
+    const newNews = validNews.filter((item) => {
+      const generatedId = generateExternalId(item);
+      return !existingExternalIds.has(generatedId);
+    });
 
-    // Simpan berita baru ke database
+    // Simpan data baru
     if (newNews.length > 0) {
       await News.insertMany(
         newNews.map((item) => ({
           title: item.title,
           description: item.description,
           author: item.author || "Unknown",
-          category: item.category || "Other",
-          newsImage: item.image,
+          category: item.category || "general",
+          newsImage: item.image || null,
           source: "external",
           externalId: generateExternalId(item),
           likes: 0,
@@ -98,10 +108,16 @@ export const fecthAndSaveExternalNews = async (limit = 20, skip = 0) => {
           createdAt: new Date(item.published_at),
         }))
       );
+
+      console.log(`✅ ${newNews.length} berita baru berhasil disimpan.`);
+    } else {
+      console.log("ℹ️ Tidak ada berita baru yang perlu disimpan.");
     }
+
     console.timeEnd("process External Data");
   } catch (error) {
-    console.error("Error fetching external news:", error.message);
+    console.error("❌ Error fetching external news:", error.message);
+    throw error;
   }
 };
 
@@ -162,6 +178,10 @@ export const getNewsById = async (req, res) => {
     if (!news) {
       return res.status(404).json({ message: "News not found" });
     }
+    news.views += 1;
+    news.trendyScore += news.views * 0.7 + news.likes * 0.3;
+    await news.save();
+
     res.status(200).json({ success: true, news });
   } catch (error) {
     res.status(500).json({
@@ -207,6 +227,8 @@ export const createNews = async (req, res) => {
       newsVideo,
       category,
       source: "admin",
+      isTop: isTop || false,
+      trendyScore: 0,
     });
 
     await newNews.save();
@@ -264,6 +286,12 @@ export const updateNews = async (req, res) => {
         .status(401)
         .json({ message: "News not found", success: false });
     }
+
+    // auto calculate si trendyScore
+    updatedNews.trendyScore = updatedNews.views * 0.7 + updatedNews.likes * 0.3;
+
+    await updatedNews.save();
+
     res.status(200).json({
       success: true,
       message: "News updated successfully",
@@ -355,6 +383,46 @@ export const getStatisticNewsGlobal = async (req, res) => {
     ).sort({ views: -1, createdAt: -1 });
 
     res.status(200).json({ period, newsStat });
+  } catch (error) {
+    res.status(500).json({ error: error.message });
+  }
+};
+
+// top news
+export const topNews = async (req, res) => {
+  try {
+    const news = await News.find({ isTop: true }).sort({ views: -1 }).limit(10);
+    console.log("news:", news);
+    res.status(200).json({ success: true, news });
+  } catch (error) {
+    res.status(500).json({ error: error.message });
+  }
+};
+
+// popular News
+export const popularNews = async (req, res) => {
+  try {
+    const news = await News.find().sort({ views: -1 }).limit(10);
+    res.status(200).json({ success: true, news });
+  } catch (error) {
+    res.status(500).json({ error: error.message });
+  }
+};
+
+// trending news
+export const getTrendyNews = async (req, res) => {
+  try {
+    const news = await News.find().sort({ trendyScore: -1 }).limit(10);
+    res.status(200).json({ success: true, news });
+  } catch (error) {
+    res.status(500).json({ error: error.message });
+  }
+};
+
+export const getLatestNews = async (req, res) => {
+  try {
+    const news = await News.find().sort({ createdAt: -1 }).limit(10);
+    res.status(200).json({ success: true, news });
   } catch (error) {
     res.status(500).json({ error: error.message });
   }

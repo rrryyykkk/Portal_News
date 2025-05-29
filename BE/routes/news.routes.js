@@ -10,9 +10,13 @@ import {
   deleteNewsExternalId,
   fecthDataNewsExternal,
   getAllNews,
+  getLatestNews,
   getNewsById,
   getStatisticNewsById,
   getStatisticNewsGlobal,
+  getTrendyNews,
+  popularNews,
+  topNews,
   updateNews,
 } from "../controllers/news.controllers.js";
 
@@ -40,7 +44,10 @@ router.get(
   verifyAdmin,
   getStatisticNewsGlobal
 );
-
+router.get("/top", topNews);
+router.get("/popular", popularNews);
+router.get("/trendy", getTrendyNews);
+router.get("/latest", getLatestNews);
 router.post("/:newsId", addViews, getNewsById);
 router.get("/:newsId", getStatisticNewsById);
 
