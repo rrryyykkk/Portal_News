@@ -2,122 +2,149 @@ import admin from "../config/firebase.js";
 import User from "../models/user.models.js";
 import bcrypt from "bcrypt";
 import { exchangeCustomTokenForIdToken } from "../service/idToken.js";
+import Joi from "joi";
+
+// Validasi register
+const registerSchema = Joi.object({
+  email: Joi.string().email().required(),
+  password: Joi.string()
+    .min(8)
+    .pattern(/^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)(?=.*[\W_])/)
+    .required()
+    .messages({
+      "string.pattern.base":
+        "Password must include uppercase, lowercase, number, and symbol",
+    }),
+  userName: Joi.string().alphanum().min(3).required(),
+  fullName: Joi.string().min(2).required(),
+});
 
 export const registerWithEmail = async (req, res) => {
   try {
-    const { email, password, userName, fullName, role } = req.body;
+    const { error } = registerSchema.validate(req.body);
+    if (error)
+      return res.status(400).json({ message: error.details[0].message });
 
-    // validasi email
-    const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
-    if (!emailRegex.test(email)) {
-      return res.status(400).json({ message: "Invalid email format" });
-    }
+    const { email, password, userName, fullName } = req.body;
+    console.log("req.body:", req.body);
+    const emailLower = email.toLowerCase();
+    const userNameLower = userName.toLowerCase();
 
-    if (password.length < 8) {
-      return res
-        .status(400)
-        .json({ message: "Password must be at least 8 characters" });
-    }
-
-    // cek email sudah terdaftar
-    const existingUser = await User.findOne({ email });
-    if (existingUser) {
-      return res.status(400).json({ message: "Email is registered" });
-    }
-
-    // validasi role
-    const roleValidate = ["user", "admin"];
-    const userRole = roleValidate.includes(role) ? role : "user";
-
-    // buat akun di firebase
-    const [firebaseUser, hashedPassword] = await Promise.all([
-      admin.auth().createUser({ email, password }),
-      bcrypt.hash(password, 10),
+    const [existingEmail, existingUsername] = await Promise.all([
+      User.findOne({ email: emailLower }),
+      User.findOne({ userName: userNameLower }),
     ]);
-    // hash password
 
-    // save ke DB
-    const dbStart = Date.now();
+    if (existingEmail)
+      return res.status(400).json({ message: "Email already registered" });
+
+    if (existingUsername)
+      return res.status(400).json({ message: "Username already taken" });
+
+    const [firebaseUser, hashedPassword] = await Promise.all([
+      admin.auth().createUser({ email: emailLower, password }),
+      bcrypt.hash(password, 12),
+    ]);
+
     const newUser = new User({
       _id: firebaseUser.uid,
-      email,
+      email: emailLower,
       password: hashedPassword,
-      userName,
+      userName: userNameLower,
       fullName,
-      role: userRole,
+      role: "user",
       provider: "email",
     });
 
-    await newUser.save();
+    console.log("newUser:", newUser);
 
-    res.status(200).json({ message: "User successfully register" });
-  } catch (error) {
-    console.log("Register error:", error);
-    res.status(500).json({ message: `failed to register: ${error.message}` });
+    await newUser.save();
+    res.status(201).json({ message: "User registered successfully" });
+  } catch (err) {
+    if (err.code === "auth/email-already-exists") {
+      return res
+        .status(400)
+        .json({ message: "Email already registered (Firebase)" });
+    }
+
+    console.error("Register error:", err);
+    res.status(500).json({ message: "Failed to register" });
   }
 };
 
 export const loginWithEmail = async (req, res) => {
   try {
-    const { email, password } = req.body;
+    const { idToken } = req.body;
+    console.log("idToken-be:", idToken);
 
-    const startTime = Date.now();
-    console.log("Mulai login...");
+    // verifikasi token dari firebase
+    const decoded = await admin.auth().verifyIdToken(idToken);
+    console.log("decoded:", decoded);
 
-    // cek user di DB
-    const user = await User.findOne({ email }).select("+password");
-    console.log("cek email:", Date.now() - startTime, "ms");
-
-    if (!user || !user.password) {
-      return res
-        .status(400)
-        .json({ message: "Email or Password is incorrect" });
+    // cek jika uid tidak ada
+    if (!decoded || !decoded.uid) {
+      return res.status(400).json({ message: "Invalid firebase ID token" });
     }
 
-    // bandingkan password yang sudah ad di DB dan pembuatan token
-    const tokenTime = Date.now();
+    // cari user berdasarkan uid
+    const user = await User.findOne({ _id: decoded.uid });
+    console.log("user:", user);
 
-    const match = await bcrypt.compare(password, user.password);
-
-    if (!match) {
-      return res
-        .status(400)
-        .json({ message: "Email or Password is incorrect" });
+    if (!user) {
+      return res.status(400).json({ message: "User not found" });
     }
 
-    // customToken
-    const customToken = await admin
-      .auth()
-      .createCustomToken(user._id.toString());
+    // buat session cookie
+    const expiresIn = 12 * 60 * 60 * 1000; // 12 jam
+    const sessionCookie = await admin.auth().createSessionCookie(idToken, {
+      expiresIn,
+    });
 
-    // simpan id token di cookies (bukan custom token lagi)
-    const idToken = await exchangeCustomTokenForIdToken(customToken);
-    console.log("Token: ", idToken);
+    res.cookie("authToken", sessionCookie, {
+      httpOnly: true,
+      secure: false, // ganti true saat deploy HTTPS
+      sameSite: "Strict",
+      maxAge: expiresIn,
+    });
 
-    console.log("cek pembuatan token:", Date.now() - tokenTime, "ms");
-
-    res.cookie("authToken", idToken, { httpOnly: true });
-    res.json({ message: "Login successfully" });
-  } catch (error) {
-    console.log("login error:", error);
-    res.status(500).json({ message: `Failed to login: ${error.message}` });
+    res.json({
+      message: "Login successful",
+      user: {
+        _id: user._id,
+        email: user.email,
+        userName: user.userName,
+        fullName: user.fullName,
+        role: user.role,
+        provider: user.provider,
+        profileImage: user.profileImage,
+        backgroundImage: user.backgroundImage,
+        bio: user.bio,
+        followers: user.followers,
+        following: user.following,
+      },
+    });
+  } catch (err) {
+    console.error("Login error:", err.message);
+    res.status(500).json({ message: "Failed to login" });
   }
 };
 
 export const socialLogin = async (req, res) => {
   try {
     const { idToken } = req.body;
-
-    // verivikasi token firebase
     const decoded = await admin.auth().verifyIdToken(idToken);
-    let user = await User.findOne({ _id: decoded.uid });
 
+    let user = await User.findById(decoded.uid);
     if (!user) {
+      const userNameLower = decoded.name
+        ? decoded.name.toLowerCase().replace(/\s+/g, "")
+        : decoded.email.split("@")[0].toLowerCase();
+
       user = new User({
         _id: decoded.uid,
-        email: decoded.email,
-        userName: decoded.name || decoded.email.split("@")[0],
-        fullName: decoded.name,
+        email: decoded.email.toLowerCase(),
+        userName: userNameLower,
+        fullName: decoded.name || "User",
         role: "user",
         provider: decoded.firebase.sign_in_provider,
         profileImage: decoded.picture || "",
@@ -126,22 +153,38 @@ export const socialLogin = async (req, res) => {
       await user.save();
     }
 
-    // create token login
-    const token = await admin.auth().createCustomToken(user._id);
+    const customToken = await admin.auth().createCustomToken(user._id);
+    const refreshedIdToken = await exchangeCustomTokenForIdToken(customToken);
 
-    res.cookie("authToken", token, { httpOnly: true });
-    res.json({ message: "Login succesfully", token });
-  } catch (error) {
-    console.log("social login error:", error.message);
-    res.status(500).json({ message: `Failed to Login ${error.message}` });
+    res.cookie("authToken", refreshedIdToken, {
+      httpOnly: true,
+      secure: true,
+      sameSite: "Strict",
+    });
+
+    res.json({
+      message: "Social login successful",
+      user: {
+        _id: user._id,
+        email: user.email,
+        userName: user.userName,
+        fullName: user.fullName,
+        role: user.role,
+        provider: user.provider,
+        profileImage: user.profileImage,
+      },
+    });
+  } catch (err) {
+    console.error("Social login error:", err);
+    res.status(500).json({ message: "Failed to login via social" });
   }
 };
 
 export const logOut = (req, res) => {
   try {
     res.clearCookie("authToken");
-    res.json({ message: "Logout successfully" });
-  } catch (error) {
+    res.json({ message: "Logged out successfully" });
+  } catch (err) {
     res.status(500).json({ message: "Failed to logout" });
   }
 };

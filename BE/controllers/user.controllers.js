@@ -1,3 +1,4 @@
+import admin from "../config/firebase.js";
 import Notification from "../models/notification.models.js";
 import User from "../models/user.models.js";
 import {
@@ -20,65 +21,96 @@ export const getProfile = (req, res) => {
 
 export const editProfile = async (req, res) => {
   try {
-    const { userName, fullName, password, bio, profileImage, backgroundImage } =
-      req.body;
+    const {
+      userName,
+      fullName,
+      password,
+      newPassword,
+      email,
+      bio,
+      profileImage,
+      backgroundImage,
+    } = req.body;
 
-    const user = await User.findById(req.user._id);
+    console.log("req.body:-editProfile", req.body);
+
+    const user = await User.findById(req.user._id).select("+password");
+    console.log("user:-editProfile", user);
     if (!user) return res.status(404).json({ message: "User not found" });
 
     if (password) user.password = await bcrypt.hash(password, 10);
 
-    const uploadPromise = [];
+    // edit email di firebase + mongodb
+
+    if (email && email !== user.email) {
+      const regexEmail = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+      if (!regexEmail.test(email))
+        return res.status(400).json({ message: "Invalid email" });
+
+      await admin.auth().updateUser(user._id, { email });
+      user.email = email;
+    }
+
+    // edit password di firebase + mongoDB
+
+    if (password && newPassword) {
+      const regexPassword = /^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)(?=.*[\W_]).{8,}$/;
+      if (!regexPassword.test(newPassword))
+        return res.status(400).json({
+          message:
+            "Password must include uppercase, lowercase, number, symbol, and be at least 8 characters",
+        });
+
+      if (password === newPassword) {
+        return res.status(400).json({
+          message: "New password must be different from current password",
+        });
+      }
+      const isMatch = await bcrypt.compare(password, user.password);
+      if (!isMatch) {
+        return res
+          .status(400)
+          .json({ message: "Current password is incorrect" });
+      }
+
+      // firebase
+      await admin.auth().updateUser(user._id, { password: newPassword });
+
+      // mongoDb
+      user.password = await bcrypt.hash(newPassword, 10);
+    }
 
     // upload profileImage
-    if (req.files?.profileImage) {
-      uploadPromise.push(
-        uploadToCloudinary(
-          req.files.profileImage.data,
-          "profile",
-          req.files.profileImage.mimeType
-        ).then((url) => (user.profileImage = url))
-      );
-    } else if (profileImage && !isValidImageUrl(profileImage)) {
-      uploadPromise.push(
-        downloadAndUploadImage(profileImage).then(
-          (url) => (user.profileImage = url)
-        )
-      );
-    } else if (profileImage) {
-      user.profileImage = profileImage;
+    if (profileImage && profileImage.startsWith("data:image/")) {
+      const mime = profileImage.match(/^data:(.+);base64,/)[1];
+      const base64Data = profileImage.split(",")[1];
+      const buffer = Buffer.from(base64Data, "base64");
+
+      const result = await uploadToCloudinary(buffer, "profiles", mime);
+      user.profileImage = result.secure_url;
     }
 
     // upload background
-    if (req.files?.backgroundImage) {
-      uploadPromise.push(
-        uploadToCloudinary(
-          req.files.backgroundImage.data,
-          "profile",
-          req.files.backgroundImage.mimeType
-        ).then((url) => (user.profileImage = url))
-      );
-    } else if (backgroundImage && !isValidImageUrl(backgroundImage)) {
-      uploadPromise.push(
-        downloadAndUploadImage(backgroundImage).then(
-          (url) => (user.backgroundImage = url)
-        )
-      );
-    } else if (backgroundImage) {
-      user.backgroundImage = backgroundImage;
+    if (backgroundImage && backgroundImage.startsWith("data:image/")) {
+      const mime = backgroundImage.match(/^data:(.+);base64,/)[1];
+      const base64Data = backgroundImage.split(",")[1];
+      const buffer = Buffer.from(base64Data, "base64");
+
+      const result = await uploadToCloudinary(buffer, "profiles", mime);
+      user.backgroundImage = result.secure_url;
     }
 
     if (userName) user.userName = userName;
     if (fullName) user.fullName = fullName;
     if (bio) user.bio = bio;
 
-    await Promise.allSettled(uploadPromise);
     await user.save();
     res.json(user);
   } catch (error) {
     res
       .status(500)
       .json({ message: " Edit profile failed:", error: error.message });
+    console.log("Edit Profile Error:", error.message);
   }
 };
 
@@ -161,7 +193,6 @@ export const followers = async (req, res) => {
   try {
     const adminId = req.user._id;
     const admin = await User.findById(adminId).select("followers").lean();
-
 
     if (!admin) {
       return res.status(404).json({ error: "Admin not found" });

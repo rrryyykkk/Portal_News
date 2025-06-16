@@ -7,7 +7,7 @@ import {
 // cron untuk fecth data setiap 6 jam sekali
 cron.schedule("0 */6 * * *", async () => {
   console.log("feching news every 6 hours");
-  await fecthAndSaveExternalNews(20, 0);
+  await fecthAndSaveExternalNews(40, 0);
   console.log("✅ External news updated!");
 });
 

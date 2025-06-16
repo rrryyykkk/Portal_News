@@ -1,5 +1,17 @@
+/* eslint-disable no-unused-vars */
 import { useDropzone } from "react-dropzone";
 import { useState, useCallback, useRef } from "react";
+import { useToastStore } from "../../app/store/useToastStore";
+import { useEditProfile } from "../../app/store/useUsers";
+
+const convertToBase64 = (file) => {
+  return new Promise((resolve, reject) => {
+    const reader = new FileReader();
+    reader.readAsDataURL(file);
+    reader.onload = () => resolve(reader.result);
+    reader.onerror = (error) => reject(error);
+  });
+};
 
 const EditProfilePage = () => {
   const [firstName, setFirstName] = useState("");
@@ -13,6 +25,9 @@ const EditProfilePage = () => {
   const [bannerImg, setBannerImg] = useState(null);
   const bioRef = useRef();
 
+  const { setToast } = useToastStore();
+  const { mutate: editProfile, isPending } = useEditProfile();
+
   const handleDropProfile = useCallback((acceptedFiles) => {
     setProfileImg(acceptedFiles[0]);
   }, []);
@@ -21,6 +36,7 @@ const EditProfilePage = () => {
     setBannerImg(acceptedFiles[0]);
   }, []);
 
+  // profileImage
   const {
     getRootProps: getProfileRootProps,
     getInputProps: getProfileInputProps,
@@ -30,6 +46,7 @@ const EditProfilePage = () => {
     maxFiles: 1,
   });
 
+  // bannerImage
   const {
     getRootProps: getBannerRootProps,
     getInputProps: getBannerInputProps,
@@ -39,20 +56,39 @@ const EditProfilePage = () => {
     maxFiles: 1,
   });
 
-  const handleSubmit = () => {
-    const formData = {
-      firstName,
-      lastName,
-      userName,
-      email,
-      oldPassword,
-      newPassword,
-      bio,
-      profileImg,
-      bannerImg,
-    };
-    console.log("Updated Profile:", formData);
-    alert("Profil berhasil diperbarui!");
+  const handleSubmit = async () => {
+    try {
+      const profileBase64 = profileImg
+        ? await convertToBase64(profileImg)
+        : null;
+      const bannerBase64 = bannerImg ? await convertToBase64(bannerImg) : null;
+
+      editProfile(
+        {
+          fullName: `${firstName} ${lastName}`,
+          userName,
+          email,
+          bio,
+          profileImage: profileBase64,
+          backgroundImage: bannerBase64,
+          password: oldPassword,
+          newPassword,
+        },
+        {
+          onSuccess: () => {
+            setToast({
+              type: "success",
+              message: "Profile updated successfully",
+            });
+          },
+          onError: (error) => {
+            setToast({ type: "error", message: error?.response?.data.message });
+          },
+        }
+      );
+    } catch (error) {
+      setToast({ type: "error", message: "Something went wrong" });
+    }
   };
 
   const inputStyle =
@@ -189,7 +225,7 @@ const EditProfilePage = () => {
         <div className="text-center">
           <button
             onClick={handleSubmit}
-            className="bg-indigo-600 hover:bg-indigo-700 text-white font-semibold px-8 py-3 rounded-2xl shadow-md transition"
+            className="bg-indigo-600 hover:bg-indigo-700 text-white font-semibold px-8 py-3 rounded-2xl shadow-md transition cursor-pointer"
           >
             Save Changes
           </button>

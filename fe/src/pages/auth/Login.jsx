@@ -3,24 +3,75 @@ import { useState } from "react";
 import { motion } from "framer-motion";
 import Navbar from "../../components/auth/Navbar";
 import { FaRegEyeSlash, FaRegEye } from "react-icons/fa";
+import { useAuthStore } from "../../app/store/useAuthStore";
+import { useToastStore } from "../../app/store/useToastStore";
+import { useNavigate, useLocation } from "react-router-dom";
 
 const Login = () => {
   const [showPassword, setShowPassword] = useState(false);
   const [loading, setLoading] = useState(false);
+  const [formData, setFormData] = useState({
+    email: "",
+    password: "",
+  });
+  const [error, setError] = useState({});
 
-  const onLogin = (e) => {
+  const loginUser = useAuthStore((state) => state.login);
+  const setToast = useToastStore((state) => state.setToast);
+
+  const navigate = useNavigate();
+  const location = useLocation();
+  const from = location.state?.from?.pathname || "/";
+
+  const onLogin = async (e) => {
     e.preventDefault();
-    setLoading(true);
 
-    // Simulasi delay login
-    setTimeout(() => {
+    // Validasi form
+    const newError = {};
+    if (!formData.email) {
+      newError.email = "Email is required";
+    } else if (!/\S+@\S+\.\S+/.test(formData.email)) {
+      newError.email = "Invalid email format";
+    }
+    if (!formData.password) {
+      newError.password = "Password is required";
+    }
+    if (Object.keys(newError).length > 0) {
+      setError(newError);
+      return;
+    }
+
+    // Proses login
+    setLoading(true);
+    setError({});
+
+    try {
+      await loginUser(formData); // login ke backend
+      const me = useAuthStore.getState().user;
+      if (me) {
+        setToast("Login success", "success");
+        navigate(from, { replace: true });
+      }
+    } catch (err) {
+      setToast(
+        err?.response?.data?.message ||
+          "Login failed, please check your credentials",
+        "error"
+      );
+    } finally {
       setLoading(false);
-      console.log("Login berhasil");
-    }, 1500);
+    }
   };
 
   const togglePassword = () => {
     setShowPassword((prev) => !prev);
+  };
+
+  const handleChange = (e) => {
+    setFormData((prev) => ({
+      ...prev,
+      [e.target.name]: e.target.value,
+    }));
   };
 
   return (
@@ -60,6 +111,8 @@ const Login = () => {
               name="email"
               placeholder="Enter your email"
               className="border rounded-md p-2 text-sm"
+              value={formData.email}
+              onChange={handleChange}
               required
             />
           </div>
@@ -75,6 +128,8 @@ const Login = () => {
               name="password"
               placeholder="Enter your password"
               className="border rounded-md p-2 text-sm pr-10"
+              value={formData.password}
+              onChange={handleChange}
               required
             />
             <span
@@ -86,7 +141,7 @@ const Login = () => {
           </div>
 
           {/* Remember me */}
-          <div className="flex items-center space-x-2 ">
+          <div className="flex items-center space-x-2">
             <input
               type="checkbox"
               id="remember"
@@ -96,6 +151,15 @@ const Login = () => {
               Remember me
             </label>
           </div>
+
+          {/* Error Message */}
+          {Object.keys(error).length > 0 && (
+            <div className="text-red-500 text-sm text-center space-y-1">
+              {Object.values(error).map((err, index) => (
+                <p key={index}>{err}</p>
+              ))}
+            </div>
+          )}
 
           {/* Submit button */}
           <motion.button

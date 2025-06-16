@@ -1,37 +1,56 @@
 import admin from "../config/firebase.js";
 import newsModels from "../models/news.models.js";
 import User from "../models/user.models.js";
+import dotenv from "dotenv";
+
+dotenv.config();
 
 export const verifyCookieToken = async (req, res, next) => {
   try {
     // pastikan req.cookies.authToken tersedia
-    const startTime = Date.now();
-    const token =
-      req.cookies?.authToken ||
-      (req.headers.authorization &&
-      req.headers.authorization.startsWith("Bearer ")
-        ? req.headers.authorization.split(" ")[1]
-        : null);
-
+    const token = req.cookies?.authToken;
+    console.log("token-middleware:", token);
     if (!token)
       return res
         .status(401)
         .json({ message: "Unauthorized: No token provided" });
 
     // verifikasi token dari firebase
-    const decoded = await admin.auth().verifyIdToken(token);
+    const decoded = await admin.auth().verifySessionCookie(token, true);
+    console.log("decoded:", decoded);
 
-    if (!decoded || !decoded.uid)
-      return res.status(401).json({ message: "Unauthorized: Invalid Token" });
+    if (!decoded || typeof decoded.uid !== "string") {
+      return res.status(401).json({ message: "Unauthorized: Invalid token" });
+    }
 
     // cek user ada di DB
-    const user = await User.findById(decoded.uid);
-    if (!user) return res.status(401).json({ message: "User not found" });
+    const user = await User.findById(decoded.uid).select(
+      "_id email role fullName userName provider profileImage backgroundImage bio followers following"
+    );
+    if (!user || typeof user.role !== "string")
+      return res
+        .status(401)
+        .json({ message: "Unauthorized: User not found or invalid" });
 
-    req.user = user;
-    const endTime = Date.now();
-    const executionTime = endTime - startTime;
-    console.log("Execution time:", executionTime, "ms");
+    // sanitasi user
+    const sanitizedUser = {
+      _id: user._id.toString(),
+      email: user.email,
+      role: user.role.toLowerCase(),
+      fullName: user.fullName,
+      userName: user.userName,
+      provider: user.provider,
+      profileImage: user.profileImage,
+      backgroundImage: user.backgroundImage,
+      bio: user.bio,
+      followers: user.followers,
+      following: user.following,
+    };
+    console.log("sanitizedUser:", sanitizedUser);
+
+    Object.freeze(sanitizedUser);
+
+    req.user = sanitizedUser;
     next();
   } catch (error) {
     console.log("Firebase token error:", error);
@@ -41,19 +60,34 @@ export const verifyCookieToken = async (req, res, next) => {
 
 export const verifyAdmin = (req, res, next) => {
   try {
-    if (!req.user) {
+    // sisi dev
+    if (process.env.NODE_ENV === "development") {
+      {
+        req.user = {};
+      }
+      return next();
+    }
+
+    if (
+      !req.user ||
+      typeof req.user !== "object" ||
+      req.user === null ||
+      typeof req.user.role !== "string"
+    ) {
       return res
         .status(401)
-        .json({ message: "Unathorized: User not authenticated" });
+        .json({ message: "Unathorized: Invalid user object" });
     }
-    if (req.user.role !== "admin") {
-      return res
-        .status(403)
-        .json({ message: "Forbidden: Admin access requiered" });
+
+    const role = req.user.role.toLowerCase();
+
+    if (role !== "admin") {
+      return res.status(403).json({ message: "Forbidden: Admin access only" });
     }
 
     next();
   } catch (error) {
+    console.error("[verifyAdminStrict]", error);
     return res
       .status(500)
       .json({ message: "Internal server error", error: error.message });

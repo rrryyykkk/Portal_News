@@ -1,10 +1,21 @@
+/* eslint-disable no-unused-vars */
+import { useNews } from "../app/store/useNews";
 import Footer from "../components/Footer";
 import Navbar from "../components/Navbar";
 
-const Layout = ({ children, meUser, news }) => {
+const Layout = ({ children, meUser }) => {
+  const {
+    data: newsData,
+    isLoading: newsLoading,
+    isError: newsError,
+  } = useNews();
+
+  const newsList = newsData?.data?.news || [];
+  console.log("newsList-layout:", newsList);
+
   return (
     <div className="min-h-screen bg-gray-100">
-      <Navbar meUser={meUser} news={news} />
+      <Navbar meUser={meUser} news={newsList} isLoading={newsLoading} />
       {children}
       <Footer />
     </div>

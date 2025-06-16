@@ -6,33 +6,33 @@ import { uploadToCloudinary } from "../utils/uploadToCloudinary.js";
 // mediastack + local news(admin)
 export const getAllNews = async (req, res) => {
   try {
-    let { page = 1, limit = 10, source, category, search } = req.query;
+    let { page = 1, limit = 50, source, category, search, all } = req.query;
 
-    // konversi ke tipe data yang sesuai
     page = parseInt(page);
     limit = parseInt(limit);
 
     const filter = {};
 
-    // filter berdasarkan source
     if (source) filter.source = source;
-    // filter berdasarkan kategory
     if (category) filter.category = category;
-    // filter berdasarkan search title
     if (search) filter.title = { $regex: search, $options: "i" };
 
-    // hitung total data berdasarkan filter
-    const totalNews = await News.countDocuments(filter);
+    let news;
+    let totalNews = await News.countDocuments(filter);
 
-    const news = await News.find(filter)
-      .sort({ createdAt: -1 })
-      .skip((page - 1) * limit)
-      .limit(limit);
+    if (all === "true") {
+      news = await News.find(filter).sort({ createdAt: -1 });
+    } else {
+      news = await News.find(filter)
+        .sort({ createdAt: -1 })
+        .skip((page - 1) * limit)
+        .limit(limit);
+    }
 
     res.status(200).json({
       news,
-      totalPages: Math.ceil(totalNews / limit),
-      currentPage: page,
+      totalPages: all === "true" ? 1 : Math.ceil(totalNews / limit),
+      currentPage: all === "true" ? 1 : page,
     });
   } catch (error) {
     res.status(500).json({ error: error.message });
@@ -55,7 +55,7 @@ export const fecthAndSaveExternalNews = async (limit = 40, skip = 0) => {
         access_key: process.env.NEWS_APIKEY,
         countries: "id",
         limit,
-        offset: skip, // offset = skip
+        offset: skip,
       },
     });
 
@@ -63,19 +63,12 @@ export const fecthAndSaveExternalNews = async (limit = 40, skip = 0) => {
 
     const fetchedNews = response?.data?.data || [];
 
-    // Validasi & filter item yang lengkap dan punya URL
     const validNews = fetchedNews.filter(
-      (item) =>
-        item.title &&
-        item.description &&
-        item.url && // penting untuk generate ID
-        item.published_at
+      (item) => item.title && item.description && item.url && item.published_at
     );
 
-    // Buat daftar externalId dari data valid
     const externalIds = validNews.map((item) => generateExternalId(item));
 
-    // Cari ID yang sudah ada di database
     const existingDocs = await News.find(
       { externalId: { $in: externalIds } },
       { externalId: 1 }
@@ -85,13 +78,15 @@ export const fecthAndSaveExternalNews = async (limit = 40, skip = 0) => {
       existingDocs.map((doc) => doc.externalId)
     );
 
-    // Ambil data baru yang belum tersimpan
     const newNews = validNews.filter((item) => {
       const generatedId = generateExternalId(item);
       return !existingExternalIds.has(generatedId);
     });
 
-    // Simpan data baru
+    // 🧹 Hapus semua berita external sebelum menyimpan yang baru
+    await News.deleteMany({ source: "external" });
+
+    // 💾 Simpan berita baru
     if (newNews.length > 0) {
       await News.insertMany(
         newNews.map((item) => ({
@@ -198,23 +193,15 @@ export const createNews = async (req, res) => {
     const { title, description, author, category } = req.body;
 
     const startUpload = Date.now();
-    let newsImage = null;
-    let newsVideo = null;
+    const imageFile = req.files?.newsImage?.[0];
+    const videoFile = req.files?.newsVideo?.[0];
 
-    if (req.files?.newsImage) {
-      newsImage = await uploadToCloudinary(
-        req.files.newsImage[0].buffer,
-        "news",
-        req.files.newsImage[0].mimeType
-      );
-    }
-    if (req.files?.newsVideo) {
-      newsVideo = await uploadToCloudinary(
-        req.files.newsVideo[0].buffer,
-        "news",
-        req.files.newsVideo[0].mimeType
-      );
-    }
+    const newsImage = imageFile
+      ? await uploadToCloudinary(imageFile.buffer, "news", imageFile.mimetype)
+      : null;
+    const newsVideo = videoFile
+      ? await uploadToCloudinary(videoFile.buffer, "news", videoFile.mimetype)
+      : null;
     console.log("upload time:", Date.now() - startUpload);
 
     const startSave = Date.now();
@@ -255,18 +242,21 @@ export const updateNews = async (req, res) => {
     if (description) updateFields.description = description;
     if (category) updateFields.category = category;
 
-    if (req.files?.newsImage) {
+    const imageFile = req.files?.newsImage?.[0];
+    const videoFile = req.files?.newsVideo?.[0];
+
+    if (imageFile) {
       updateFields.newsImage = await uploadToCloudinary(
-        req.files.newsImage[0].buffer,
+        imageFile.buffer,
         "news",
-        req.files.newsImage[0].mimeType
+        imageFile.mimeType
       );
     }
-    if (req.files?.newsVideo) {
+    if (videoFile) {
       updateFields.newsVideo = await uploadToCloudinary(
-        req.files.newsVideo[0].buffer,
+        videoFile.buffer,
         "news",
-        req.files.newsVideo[0].mimeType
+        videoFile.mimeType
       );
     }
 

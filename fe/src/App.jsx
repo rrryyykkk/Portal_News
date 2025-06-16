@@ -9,11 +9,15 @@ import About from "./pages/About";
 import Contact from "./pages/Contact";
 import ProfilePage from "./pages/ProfilePage";
 import EditProfile from "./pages/profile/EditProfile";
-import { currentUserId, users } from "./data/userData";
-import news from "./data/news.json";
+// import news from "./data/news.json";
 import NewsPost from "./pages/news/NewsPost";
 import LatestVideo from "./pages/news/LatestVideoPage";
 import NotFound from "./pages/NotFound";
+
+import { useAuthStore } from "./app/store/useAuthStore";
+import ProtectedRoute from "./midlleware/ProtectedRoute";
+
+import Toast from "./components/common/Toast";
 
 // data dummy videos
 const videos = [
@@ -56,102 +60,108 @@ const videos = [
 ];
 
 function App() {
-  const meUser = users.find((u) => u.id === currentUserId);
-  console.log("news:", news);
+  const meUser = useAuthStore((state) => state.user);
+  console.log("meUser:", meUser);
+
   return (
-    <Routes>
-      <Route path="/login" element={<Login />} />
-      <Route path="/register" element={<Register />} />
-      <Route
-        path="/"
-        element={
-          <Layout meUser={meUser} news={news}>
-            <HomePage news={news} video={videos} />
-          </Layout>
-        }
-      />
-      <Route
-        path="/news/:id"
-        element={
-          <Layout meUser={meUser} news={news}>
-            <SinglePage />
-          </Layout>
-        }
-      />
-      <Route
-        path="/category/:categoryName"
-        element={
-          <Layout meUser={meUser} news={news}>
-            <CategoryPage news={news} />
-          </Layout>
-        }
-        key="category"
-      />
-      <Route
-        path="/news-post"
-        element={
-          <Layout meUser={meUser} news={news}>
-            <NewsPost news={news} />
-          </Layout>
-        }
-      />
-      <Route
-        path="/latest-video"
-        element={
-          <Layout meUser={meUser} news={news}>
-            <LatestVideo videos={videos} />
-          </Layout>
-        }
-      />
-      <Route
-        path="/about-us"
-        element={
-          <Layout meUser={meUser} news={news}>
-            <About />
-          </Layout>
-        }
-      />
-      <Route
-        path="/contact-us"
-        element={
-          <Layout meUser={meUser} news={news}>
-            <Contact />
-          </Layout>
-        }
-      />
-      <Route
-        path="/profile/me"
-        element={
-          <Layout meUser={meUser} news={news}>
-            <ProfilePage isMe meUser={meUser} />
-          </Layout>
-        }
-      />
-      <Route
-        path="/profile/me/edit"
-        element={
-          <Layout meUser={meUser} news={news}>
-            <EditProfile isMe meUser={meUser} />
-          </Layout>
-        }
-      />
-      <Route
-        path="/profile/:id"
-        element={
-          <Layout meUser={meUser}>
-            <ProfilePage meUser={meUser} />
-          </Layout>
-        }
-      />
-      <Route
-        path="*"
-        element={
-          <Layout meUser={meUser}>
-            <NotFound />
-          </Layout>
-        }
-      />
-    </Routes>
+    <>
+      <Toast />
+      <Routes>
+        <Route path="/login" element={<Login />} />
+        <Route path="/register" element={<Register />} />
+        <Route
+          path="/"
+          element={
+            <Layout meUser={meUser}>
+              <HomePage video={videos} />
+            </Layout>
+          }
+        />
+        <Route
+          path="/news/:id"
+          element={
+            <Layout meUser={meUser}>
+              <ProtectedRoute>
+                <SinglePage />
+              </ProtectedRoute>
+            </Layout>
+          }
+        />
+        <Route
+          path="/category/:categoryName"
+          element={
+            <Layout meUser={meUser}>
+              <CategoryPage />
+            </Layout>
+          }
+          key="category"
+        />
+        <Route
+          path="/news-post"
+          element={
+            <Layout meUser={meUser}>
+              <NewsPost />
+            </Layout>
+          }
+        />
+        <Route
+          path="/latest-video"
+          element={
+            <Layout meUser={meUser}>
+              <LatestVideo videos={videos} />
+            </Layout>
+          }
+        />
+        <Route
+          path="/about-us"
+          element={
+            <Layout meUser={meUser}>
+              <About />
+            </Layout>
+          }
+        />
+        <Route
+          path="/contact-us"
+          element={
+            <Layout meUser={meUser}>
+              <Contact />
+            </Layout>
+          }
+        />
+        <Route
+          path="/profile/me"
+          element={
+            <Layout meUser={meUser}>
+              <ProfilePage isMe meUser={meUser} />
+            </Layout>
+          }
+        />
+        <Route
+          path="/profile/me/edit"
+          element={
+            <Layout meUser={meUser}>
+              <EditProfile isMe meUser={meUser} />
+            </Layout>
+          }
+        />
+        <Route
+          path="/profile/:id"
+          element={
+            <Layout meUser={meUser}>
+              <ProfilePage meUser={meUser} />
+            </Layout>
+          }
+        />
+        <Route
+          path="*"
+          element={
+            <Layout meUser={meUser}>
+              <NotFound />
+            </Layout>
+          }
+        />
+      </Routes>
+    </>
   );
 }
 

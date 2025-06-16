@@ -2,6 +2,7 @@ import { FaUserEdit } from "react-icons/fa";
 import { Link } from "react-router-dom";
 
 const HeaderMe = ({ user, activeTab, onTabChange }) => {
+  console.log("user-headersMe:", user);
   const isAdmin = user.role === "admin";
 
   const tabs = isAdmin
@@ -23,8 +24,8 @@ const HeaderMe = ({ user, activeTab, onTabChange }) => {
         />
         <div className="absolute -bottom-10 left-4 md:left-8 w-20 md:w-24 h-20 md:h-24 rounded-full border-4 border-white shadow-md overflow-hidden">
           <img
-            src={user.avatarUrl || "/avatar-placeholder.png"}
-            alt={`${user.name} avatar`}
+            src={user.profileImage || "/avatar/01.jpg"}
+            alt={`${user.fullName} avatar`}
             className="w-full h-full object-cover"
           />
         </div>
@@ -34,7 +35,7 @@ const HeaderMe = ({ user, activeTab, onTabChange }) => {
       <div className="pt-16 px-4 md:px-8 pb-4 grid grid-cols-1 md:grid-cols-3 items-center gap-4 text-center md:text-left">
         {/* Info */}
         <div>
-          <h2 className="text-xl md:text-2xl font-semibold">{user.name}</h2>
+          <h2 className="text-xl md:text-2xl font-semibold">{user.fullName}</h2>
           <p className="text-sm md:text-base text-gray-600 mt-1">{user.bio}</p>
         </div>
 

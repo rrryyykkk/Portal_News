@@ -7,7 +7,9 @@ import userRoutes from "./routes/user.routes.js";
 import newsRoutes from "./routes/news.routes.js";
 import activitiesRoutes from "./routes/activities.routes.js";
 import notificationRoutes from "./routes/Notification.routes.js";
+import "./middlewares/sanitaze.js";
 import "./jobs/cron.schedule.js";
+import cors from "cors";
 
 dotenv.config();
 
@@ -16,9 +18,12 @@ const app = express();
 // env
 const PORT = process.env.PORT;
 
+// cors
+app.use(cors({ origin: "http://localhost:5173", credentials: true }));
+
 // middleware
-app.use(express.json());
-app.use(express.urlencoded({ extended: true }));
+app.use(express.json({ limit: "20mb" }));
+app.use(express.urlencoded({ extended: true, limit: "20mb" }));
 app.use(cookieParser());
 
 // routes
