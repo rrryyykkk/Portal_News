@@ -1,3 +1,4 @@
+/* eslint-disable no-unused-vars */
 import { useEffect, useRef, useState } from "react";
 
 // icons
@@ -8,136 +9,45 @@ import { FaBookmark } from "react-icons/fa";
 import { Navigation, Pagination } from "swiper/modules";
 import { Swiper, SwiperSlide } from "swiper/react";
 import SwiperBtn from "../../../components/common/SwiperBtn";
+import { useToggleMarked } from "../../../app/store/useActivities";
+import { useTrendyNews } from "../../../app/store/useNews";
+import { useToastStore } from "../../../app/store/useToastStore";
 
-const posts = [
-  {
-    id: 1,
-    title: "Post 1",
-    description: "Description 1",
-    image: "/animal/01.jpg",
-    profile: {
-      name: "John Doe",
-      image: "/avatar/01.jpg",
-      date: "2023-01-01",
-    },
-    bookmark: false,
-  },
-  {
-    id: 2,
-    title: "Post 2",
-    description: "Description 2",
-    image: "/animal/02.jpg",
-    profile: {
-      name: "Joni Dun",
-      image: "/avatar/02.jpg",
-      date: "2023-02-01",
-    },
-    bookmark: false,
-  },
-  {
-    id: 3,
-    title: "Post 3",
-    description: "Description 3",
-    image: "/animal/03.jpg",
-    profile: {
-      name: "Johan Dee",
-      image: "/avatar/03.jpg",
-      date: "2023-03-01",
-    },
-    bookmark: false,
-  },
-  {
-    id: 4,
-    title: "Post 4",
-    description: "Description 4",
-    image: "/animal/04.jpg",
-    profile: {
-      name: "ana Doe",
-      image: "/avatar/04.jpg",
-      date: "2023-04-01",
-    },
-    bookmark: false,
-  },
-  {
-    id: 5,
-    title: "Post 5",
-    description: "Description 5",
-    image: "/animal/05.jpg",
-    profile: {
-      name: "sarah Doe",
-      image: "/avatar/05.jpg",
-      date: "2023-05-01",
-    },
-    bookmark: false,
-  },
-  {
-    id: 6,
-    title: "Post 6",
-    description: "Description 6",
-    image: "/animal/06.jpg",
-    profile: {
-      name: "Hanna Doe",
-      image: "/avatar/06.jpg",
-      date: "2023-06-01",
-    },
-    bookmark: false,
-  },
-  {
-    id: 7,
-    title: "Post 7",
-    description: "Description 7",
-    image: "/animal/07.jpg",
-    profile: {
-      name: "hanna",
-      image: "/avatar/07.jpg",
-      date: "2023-07-01",
-    },
-    bookmark: false,
-  },
-  {
-    id: 8,
-    title: "Post 8",
-    description: "Description 8",
-    image: "/animal/08.jpg",
-    profile: {
-      name: "Oppica",
-      image: "/avatar/08.jpg",
-      date: "2023-08-01",
-    },
-    bookmark: false,
-  },
-  {
-    id: 9,
-    title: "Post 9",
-    description: "Description 9",
-    image: "/animal/09.jpg",
-    profile: {
-      name: "yooohan",
-      image: "/avatar/09.jpg",
-      date: "2023-09-01",
-    },
-    bookmark: false,
-  },
-  {
-    id: 10,
-    title: "Post 10",
-    description: "Description 10",
-    image: "/animal/10.jpg",
-    profile: {
-      name: "aliyah",
-      image: "/avatar/10.jpg",
-      date: "2023-10-01",
-    },
-    bookmark: false,
-  },
-];
+// date formatter
+const formatDate = (dateString) => {
+  const date = new Date(dateString);
+  if (isNaN(date)) return "Unknown date";
+  return date.toLocaleDateString("id-ID", {
+    day: "2-digit",
+    month: "short",
+    year: "numeric",
+  });
+};
+
+import defaultProfile from "/avatar/01.jpg";
+import { Link } from "react-router-dom";
 
 const TrendPost = () => {
+  const { data: posts } = useTrendyNews();
+  console.log("posts-trend:", posts);
   const swiperRef = useRef(null);
+  const toggleBookmark = useToggleMarked();
   const [isBeginning, setIsBeginning] = useState(true);
   const [isEnd, setIsEnd] = useState(false);
   const [screen, setScreen] = useState("desktop");
-  const [postsData, setPostsData] = useState(posts);
+  const [postsData, setPostsData] = useState([]);
+  const setToast = useToastStore((state) => state.setToast);
+
+  useEffect(() => {
+    // Hanya set jika posts.news adalah array
+    if (Array.isArray(posts?.data?.news)) {
+      setPostsData(posts?.data?.news);
+    } else if (Array.isArray(posts)) {
+      setPostsData(posts); // fallback jika backend langsung return array
+    } else {
+      setPostsData([]); // fallback default
+    }
+  }, [posts]);
 
   useEffect(() => {
     const mobile = window.matchMedia("(max-width: 640px)");
@@ -173,18 +83,39 @@ const TrendPost = () => {
     }
   };
 
-  const handleBookmark = (id) => {
-    setPostsData((prevPosts) =>
-      prevPosts.map((post) =>
-        post.id === id ? { ...post, bookmark: !post.bookmark } : post
-      )
-    );
+  const handleBookmark = (newsId, isBookmarked) => {
+    if (!newsId) {
+      return setToast({ type: "error", message: "News not found" });
+    }
+
+    toggleBookmark.mutate(newsId, {
+      onSuccess: () => {
+        setPostsData((prevNews) =>
+          prevNews.map(
+            (n) => (n._id === newsId ? { ...n, bookmark: !isBookmarked } : n) // ✅ ini kuncinya
+          )
+        );
+
+        setToast({
+          type: isBookmarked ? "info" : "success",
+          message: isBookmarked
+            ? "Unbookmark successfully"
+            : "Bookmark successfully",
+        });
+      },
+      onError: (error) => {
+        setToast({
+          type: "error",
+          message: "Bookmark failed. Please login.",
+        });
+      },
+    });
   };
 
   const navVariant =
     screen === "mobile" ? "mobile" : screen === "tablet" ? "tablet" : "desktop";
   // screen === "mobile" ? "mobile" : screen === "tablet" ? "tablet" : "desktop";
-  console.log("navVariant:", navVariant);
+
   return (
     <div className="grid grid-cols-1 py-5">
       {/* atas */}
@@ -226,30 +157,52 @@ const TrendPost = () => {
           {postsData.slice(0, 10).map((post) => (
             <SwiperSlide key={post.id} className="h-full">
               <div className="h-full flex flex-col justify-between space-y-2 shadow rounded-lg p-3 bg-white">
-                <img
-                  src={post.image}
-                  alt={post.title}
-                  className="w-full h-48 object-cover rounded-lg"
-                />
-                <h3 className="text-lg font-semibold">{post.title}</h3>
+                <Link to={`/news/${post._id || post.id}`}>
+                  {post.newsImage ? (
+                    <img
+                      src={post.newsImage}
+                      alt={post.title}
+                      className="w-full h-40 object-cover rounded-xl transition duration-300 hover:scale-105"
+                    />
+                  ) : (
+                    <video
+                      src={post.newsVideo}
+                      alt={post.title}
+                      className="w-full h-40 object-cover rounded-xl"
+                    />
+                  )}
+                </Link>
+                <Link to={`/news/${post._id || post.id}`}>
+                  <h3 className="text-lg font-semibold hover:underline">
+                    {post.title}
+                  </h3>
+                </Link>
                 <p className="text-gray-600 text-sm">{post.description}</p>
                 <div className="bg-gray-200 flex items-center gap-2 rounded-lg p-2">
                   <img
-                    src={post.profile.image}
-                    alt={post.profile.name}
+                    src={post.profile?.image || defaultProfile}
+                    alt={post.author}
                     className="w-8 h-8 object-cover rounded-md"
                   />
                   <div>
-                    <h4 className="text-sm font-semibold">
-                      {post.profile.name}
-                    </h4>
-                    <p className="text-xs text-gray-600">{post.profile.date}</p>
+                    <h4 className="text-sm font-semibold">{post.author}</h4>
+                    <p className="text-xs text-gray-600">
+                      {post.createdAt ? formatDate(post.createdAt) : "Unknown"}
+                    </p>
                   </div>
                   <button
-                    onClick={() => handleBookmark(post.id)}
-                    className="ml-auto rounded-md  transition cursor-pointer hover:bg-gray-200 p-2"
+                    onClick={() =>
+                      handleBookmark(post._id || post.id, post.bookmark)
+                    }
+                    className="ml-auto rounded-md p-2 transition-all duration-300 ease-in-out 
+                    hover:bg-[var(--primary-color)] hover:text-white hover:shadow-md 
+                    hover:ring-2 hover:ring-[var(--primary-color)] cursor-pointer"
                   >
-                    {post.bookmark ? <FaBookmark /> : <CiBookmark />}
+                    {post.bookmark ? (
+                      <FaBookmark className="w-5 h-5" />
+                    ) : (
+                      <CiBookmark className="w-5 h-5" />
+                    )}
                   </button>
                 </div>
               </div>

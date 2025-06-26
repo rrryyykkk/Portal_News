@@ -4,11 +4,29 @@ import PageHeaders from "../components/PageHeaders";
 import CardCategory from "../components/category/CardCategory";
 import Category from "../components/common/Category";
 import { CiGrid41, CiGrid2H } from "react-icons/ci";
+import {
+  useLatestNews,
+  useNews,
+  usePopularNews,
+  useTopNews,
+  useTrendyNews,
+} from "../app/store/useNews";
+import { useToggleMarked } from "../app/store/useActivities";
+import { useToastStore } from "../app/store/useToastStore";
+import Loading from "../components/common/Loading";
 
-const postTypes = ["New", "Trend", "Popular", "Top"];
+const postTypes = ["New", "Trend", "Popular", "Top", "all"];
 
-const CategoryPage = ({ news: allNews }) => {
+const CategoryPage = () => {
   const { categoryName } = useParams();
+  const toggleBookmarked = useToggleMarked();
+  const setToast = useToastStore((state) => state.setToast);
+
+  const { data: trendNewsData } = useTrendyNews();
+  const { data: popularNewsData } = usePopularNews();
+  const { data: topNewsData } = useTopNews();
+  const { data: latestNewsData } = useLatestNews();
+  const { data: allNewsData } = useNews();
 
   const [news, setNews] = useState([]);
   const [activePost, setActivePost] = useState("New");
@@ -17,11 +35,52 @@ const CategoryPage = ({ news: allNews }) => {
   const [currentPage, setCurrentPage] = useState(1);
 
   useEffect(() => {
-    const filtered = allNews.filter(
-      (item) => item.category.toLowerCase() === categoryName.toLowerCase()
+    if (
+      !latestNewsData ||
+      !trendNewsData ||
+      !popularNewsData ||
+      !topNewsData ||
+      !allNewsData
+    ) {
+      return;
+    }
+
+    let rawData = [];
+
+    switch (activePost) {
+      case "New":
+        rawData = latestNewsData.data.news || [];
+        break;
+      case "Trend":
+        rawData = trendNewsData.data.news || [];
+        break;
+      case "Popular":
+        rawData = popularNewsData.data.news || [];
+        break;
+      case "Top":
+        rawData = topNewsData.data.news || [];
+        break;
+      case "all":
+      default:
+        rawData = allNewsData.data.news || [];
+        break;
+    }
+
+    const filtered = rawData.filter(
+      (item) =>
+        item?.category?.toLowerCase() === categoryName?.toLocaleLowerCase()
     );
     setNews(filtered);
-  }, [categoryName, allNews]);
+    setCurrentPage(1);
+  }, [
+    activePost,
+    latestNewsData,
+    trendNewsData,
+    popularNewsData,
+    topNewsData,
+    allNewsData,
+    categoryName,
+  ]);
 
   useEffect(() => {
     const mobile = window.matchMedia("(max-width: 640px)");
@@ -55,12 +114,32 @@ const CategoryPage = ({ news: allNews }) => {
     };
   }, []);
 
-  const handleBookmark = (id) => {
-    setNews((prev) =>
-      prev.map((item) =>
-        item.id === id ? { ...item, bookmark: !item.bookmark } : item
-      )
-    );
+  const isLoading =
+    !trendNewsData ||
+    !popularNewsData ||
+    !topNewsData ||
+    !latestNewsData ||
+    !allNewsData;
+
+  if (isLoading) {
+    return <Loading message="Loading news..." />;
+  }
+
+  const handleBookmark = (newsId) => {
+    if (!newsId) {
+      setToast({ type: "error", message: "News not found" });
+    }
+    toggleBookmarked.mutate(newsId, {
+      onSuccess: () => {
+        setToast({ type: "success", message: "Bookmark updated successfully" });
+      },
+      onError: () => {
+        setToast({
+          type: "error",
+          message: "Bookmark failed. Please login.",
+        });
+      },
+    });
   };
 
   const itemsPerPage = screen === "mobile" ? 5 : screen === "tablet" ? 10 : 12;
@@ -72,13 +151,12 @@ const CategoryPage = ({ news: allNews }) => {
 
   return (
     <main className="grid grid-cols-1">
-      <PageHeaders
-        curPage="Category"
-        title={news[0]?.category || categoryName}
-      />
+      <PageHeaders curPage="Category" title={categoryName} />
 
-      {/* Kategori */}
-      <Category news={allNews} />
+      {/* Header kategori tampil semua */}
+      {allNewsData?.data?.news && (
+        <Category news={allNewsData.data.news} activeCategory={categoryName} />
+      )}
 
       {/* Filter & Layout */}
       <div className="flex flex-col md:flex-row md:items-center md:justify-between bg-gray-200 p-2 gap-2">
@@ -133,7 +211,7 @@ const CategoryPage = ({ news: allNews }) => {
         >
           {paginatedNews.map((item) => (
             <CardCategory
-              key={item.id}
+              key={item._id}
               data={item}
               layout={layout}
               onBookmark={handleBookmark}

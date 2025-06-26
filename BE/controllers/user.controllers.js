@@ -1,21 +1,122 @@
 import admin from "../config/firebase.js";
 import Notification from "../models/notification.models.js";
 import User from "../models/user.models.js";
-import {
-  downloadAndUploadImage,
-  isValidImageUrl,
-  uploadToCloudinary,
-} from "../utils/uploadToCloudinary.js";
+import { uploadToCloudinary } from "../utils/uploadToCloudinary.js";
 import bcrypt from "bcrypt";
+import News from "../models/news.models.js";
 
-export const getProfile = (req, res) => {
+export const getProfile = async (req, res) => {
   try {
-    res.json(req.user);
+    const userId = req.user._id;
+
+    if (!userId || typeof userId !== "string") {
+      return res.status(400).json({ message: "Invalid user ID format" });
+    }
+
+    let user = await User.findById(userId)
+      .select(
+        "_id userName fullName profileImage backgroundImage bio followers following role marked"
+      )
+      .populate({
+        path: "marked",
+        model: "News",
+        select:
+          "_id title newsImage newsVideo views likes comments createdAt category description userId",
+        options: { sort: { createdAt: -1 } },
+        populate: {
+          path: "userId",
+          model: "User",
+          select: "_id userName profileImage",
+        },
+      });
+
+    if (!user) return res.status(404).json({ message: "User not found" });
+
+    user = user.toObject();
+    user.totalMarked = user.marked?.length || 0;
+
+    res.json(user);
   } catch (error) {
     console.log("Profile Error:", error.message);
-    res
-      .status(500)
-      .json({ message: "Failed to fetch profile", error: error.message });
+    res.status(500).json({
+      message: "Failed to fetch profile",
+      error: error.message,
+    });
+  }
+};
+
+export const getProfileById = async (req, res) => {
+  try {
+    const { id } = req.params;
+
+    if (!id || typeof id !== "string")
+      return res.status(400).json({ message: "Invalid user ID format" });
+
+    let user = await User.findById(id)
+      .select(
+        "_id userName fullName profileImage backgroundImage bio followers following role marked"
+      )
+      .populate({
+        path: "marked",
+        model: "News", // WAJIB
+        select:
+          "_id title newsImage newsVideo views likes comments createdAt category description",
+        options: { sort: { createdAt: -1 } },
+      });
+
+    if (!user) return res.status(404).json({ message: "User not found" });
+
+    user = user.toObject();
+    user.totalMarked = user.marked?.length || 0;
+
+    if (user.role === "admin") {
+      const post = await News.find({ userId: id })
+        .select(
+          "_id title newsImage newsVideo views likes comments createdAt category description"
+        )
+        .sort({ createdAt: -1 })
+        .lean();
+
+      user.post = post;
+      user.totalPost = post.length;
+
+      if (post.length > 0) {
+        const [stats] = await News.aggregate([
+          { $match: { userId: id } },
+          {
+            $group: {
+              _id: null,
+              totalLikes: { $sum: "$likes" },
+              totalComments: { $sum: "$comments" },
+              totalViews: { $sum: "$views" },
+            },
+          },
+        ]);
+
+        const score =
+          (stats?.totalLikes || 0) * 2 +
+          (stats?.totalViews || 0) * 0.1 +
+          (stats?.totalComments || 0) * 1.5;
+
+        user.rating = Number(Math.min(5, (score / 100) * 5).toFixed(1));
+        user.totalLikes = stats?.totalLikes || 0;
+        user.totalComments = stats?.totalComments || 0;
+        user.totalViews = stats?.totalViews || 0;
+      } else {
+        user.rating = 0;
+        user.totalLikes = 0;
+        user.totalComments = 0;
+        user.totalViews = 0;
+      }
+    }
+
+    res.json(user);
+  } catch (error) {
+    console.error("Profile Error:", error.message);
+    res.status(500).json({
+      message: "Failed to fetch profile",
+      error: error.message,
+    });
   }
 };
 
@@ -101,7 +202,8 @@ export const editProfile = async (req, res) => {
     }
 
     if (userName) user.userName = userName;
-    if (fullName) user.fullName = fullName;
+    if (typeof fullName === "string" && fullName.trim())
+      user.fullName = fullName;
     if (bio) user.bio = bio;
 
     await user.save();
@@ -119,8 +221,8 @@ export const followUnFollow = async (req, res) => {
     const { id } = req.params;
     const userId = req.user._id;
 
-    if (id === userId) {
-      return res.status(400).json({ error: " You can't follow/unfollow " });
+    if (!id || !userId || id === userId) {
+      return res.status(400).json({ error: " Invalid follow action " });
     }
 
     // ambil informasi user yang akan di-follow/unfollow
@@ -129,7 +231,7 @@ export const followUnFollow = async (req, res) => {
       User.findById(userId).lean(),
     ]);
 
-    if (!targetUser) {
+    if (!targetUser || !currentUser) {
       return res.status(404).json({ error: "User not found" });
     }
 

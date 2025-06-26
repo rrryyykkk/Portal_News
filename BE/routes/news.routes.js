@@ -1,6 +1,6 @@
 import express from "express";
 import {
-  addViews,
+  optionalAuth,
   verifyAdmin,
   verifyCookieToken,
 } from "../middlewares/auth.Middlewares.js";
@@ -11,26 +11,39 @@ import {
   fecthDataNewsExternal,
   getAllNews,
   getLatestNews,
-  getNewsById,
+  getRelatedNews,
+  getStatisticNewsByAdmin,
   getStatisticNewsById,
-  getStatisticNewsGlobal,
   getTrendyNews,
   popularNews,
   topNews,
   updateNews,
 } from "../controllers/news.controllers.js";
+import { uploadNewsMedia } from "../utils/multer.js";
 
 const router = express.Router();
 
-router.get("/", getAllNews);
+router.get("/", optionalAuth, getAllNews);
 router.get(
   "/external/fecth",
   verifyCookieToken,
   verifyAdmin,
   fecthDataNewsExternal
 );
-router.post("/create", verifyCookieToken, verifyAdmin, createNews);
-router.put("/updated/:id", verifyCookieToken, verifyAdmin, updateNews);
+router.post(
+  "/create",
+  verifyCookieToken,
+  verifyAdmin,
+  uploadNewsMedia,
+  createNews
+);
+router.put(
+  "/updated/:id",
+  verifyCookieToken,
+  verifyAdmin,
+  uploadNewsMedia,
+  updateNews
+);
 router.delete(
   "/external/clean",
   verifyCookieToken,
@@ -39,16 +52,16 @@ router.delete(
 );
 router.delete("/delete/:id", verifyCookieToken, verifyAdmin, deleteNews);
 router.get(
-  "/stat/global",
+  "/stat/admin",
   verifyCookieToken,
   verifyAdmin,
-  getStatisticNewsGlobal
+  getStatisticNewsByAdmin
 );
-router.get("/top", topNews);
-router.get("/popular", popularNews);
-router.get("/trendy", getTrendyNews);
-router.get("/latest", getLatestNews);
-router.post("/:newsId", addViews, getNewsById);
-router.get("/:newsId", getStatisticNewsById);
+router.get("/top", optionalAuth, topNews);
+router.get("/popular", optionalAuth, popularNews);
+router.get("/trendy", optionalAuth, getTrendyNews);
+router.get("/latest", optionalAuth, getLatestNews);
+router.get("/:newsId", optionalAuth, getStatisticNewsById);
+router.get("/:newsId/related", optionalAuth, getRelatedNews);
 
 export default router;

@@ -15,7 +15,6 @@ import LatestVideo from "./pages/news/LatestVideoPage";
 import NotFound from "./pages/NotFound";
 
 import { useAuthStore } from "./app/store/useAuthStore";
-import ProtectedRoute from "./midlleware/ProtectedRoute";
 
 import Toast from "./components/common/Toast";
 
@@ -81,9 +80,7 @@ function App() {
           path="/news/:id"
           element={
             <Layout meUser={meUser}>
-              <ProtectedRoute>
-                <SinglePage />
-              </ProtectedRoute>
+              <SinglePage />
             </Layout>
           }
         />

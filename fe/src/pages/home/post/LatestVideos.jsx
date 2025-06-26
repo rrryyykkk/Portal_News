@@ -121,7 +121,7 @@ const LatestVideos = ({ videos }) => {
 
   return (
     <div className="grid grid-rows-1 bg-gray-100 min-h-screen">
-      <div className="flex justify-between items-center px-5 pt-5">
+      <div className="flex justify-between items-center px-5 pt-10">
         <div className="flex items-center gap-2">
           <div className="h-3 w-1 bg-[var(--primary-color)] rounded-md mt-1"></div>
           <h2 className="text-2xl font-bold">Latest Videos</h2>

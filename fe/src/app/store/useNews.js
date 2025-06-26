@@ -1,10 +1,11 @@
+import { getStatisticAdmin } from "../api/activities";
 import {
   createNews,
   deleteNews,
   getLatestNews,
   getNews,
   getNewsById,
-  getStatisticNewsAll,
+  getRelatedNews,
   getTrendyNews,
   popularNews,
   topNews,
@@ -17,6 +18,9 @@ export const useNews = () => {
   return useQuery({
     queryKey: ["news"],
     queryFn: getNews,
+    refetchInterval: 10000, // ⏱ auto refresh setiap 10 detik
+    refetchOnWindowFocus: true, // 🔄 auto refresh saat tab dibuka kembali
+    staleTime: 0, // dianggap selalu stale agar selalu ambil data baru
   });
 };
 
@@ -30,18 +34,20 @@ export const useNewsById = (id) => {
 };
 
 // global statistiks
-export const useStatisticNews = () => {
-  return useQuery({
-    queryKey: ["statistic-news"],
-    queryFn: getStatisticNewsAll,
+export const useStatistikAdmin = (period = "month") =>
+  useQuery({
+    queryKey: ["statistik-admin", period],
+    queryFn: () => getStatisticAdmin(period),
+    refetchInterval: 10000, // refetch setiap 10 detik
+    refetchOnWindowFocus: true, // refetch ketika window di focus
+    staleTime: 0, // dianggep selalu stale agar windows selalu refetc
   });
-};
 
 // create news
 export const useCreateNews = () => {
   const queryClient = useQueryClient();
   return useMutation({
-    mutation: createNews,
+    mutationFn: createNews,
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["news"] });
     },
@@ -52,7 +58,7 @@ export const useCreateNews = () => {
 export const useDeleteNews = () => {
   const queryClient = useQueryClient();
   return useMutation({
-    mutation: deleteNews,
+    mutationFn: deleteNews,
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["news"] });
     },
@@ -63,10 +69,19 @@ export const useDeleteNews = () => {
 export const useUpdateNews = () => {
   const queryClient = useQueryClient();
   return useMutation({
-    mutation: ({ id, data }) => updateNews(id, data),
+    mutationFn: ({ id, data }) => updateNews(id, data),
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["news"] });
     },
+  });
+};
+
+// related news
+export const useRelatedNews = (id) => {
+  return useQuery({
+    queryKey: ["related-news", id],
+    queryFn: () => getRelatedNews(id),
+    enabled: !!id,
   });
 };
 

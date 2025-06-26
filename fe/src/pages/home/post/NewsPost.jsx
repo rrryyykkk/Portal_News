@@ -1,232 +1,163 @@
+/* eslint-disable no-unused-vars */
 import { useEffect, useState } from "react";
 import { Link } from "react-router-dom";
 // icons
 import { CiBookmark } from "react-icons/ci";
 import { FaBookmark } from "react-icons/fa";
 import { RxCaretRight } from "react-icons/rx";
+import { useToggleMarked } from "../../../app/store/useActivities";
+import { useToastStore } from "../../../app/store/useToastStore";
 
-const posts = [
-  {
-    id: 1,
-    title: "Post 1",
-    description: "Description 1",
-    image: "/animal/01.jpg",
-    profile: {
-      name: "John Doe",
-      image: "/avatar/01.jpg",
-      date: "2023-01-01",
-    },
-    bookmark: false,
-  },
-  {
-    id: 2,
-    title: "Post 2",
-    description: "Description 2",
-    image: "/animal/02.jpg",
-    profile: {
-      name: "Joni Dun",
-      image: "/avatar/02.jpg",
-      date: "2023-02-01",
-    },
-    bookmark: false,
-  },
-  {
-    id: 3,
-    title: "Post 3",
-    description: "Description 3",
-    image: "/animal/03.jpg",
-    profile: {
-      name: "Johan Dee",
-      image: "/avatar/03.jpg",
-      date: "2023-03-01",
-    },
-    bookmark: false,
-  },
-  {
-    id: 4,
-    title: "Post 4",
-    description: "Description 4",
-    image: "/animal/04.jpg",
-    profile: {
-      name: "ana Doe",
-      image: "/avatar/04.jpg",
-      date: "2023-04-01",
-    },
-    bookmark: false,
-  },
-  {
-    id: 5,
-    title: "Post 5",
-    description: "Description 5",
-    image: "/animal/05.jpg",
-    profile: {
-      name: "sarah Doe",
-      image: "/avatar/05.jpg",
-      date: "2023-05-01",
-    },
-    bookmark: false,
-  },
-  {
-    id: 6,
-    title: "Post 6",
-    description: "Description 6",
-    image: "/animal/06.jpg",
-    profile: {
-      name: "Hanna Doe",
-      image: "/avatar/06.jpg",
-      date: "2023-06-01",
-    },
-    bookmark: false,
-  },
-  {
-    id: 7,
-    title: "Post 7",
-    description: "Description 7",
-    image: "/animal/07.jpg",
-    profile: {
-      name: "hanna",
-      image: "/avatar/07.jpg",
-      date: "2023-07-01",
-    },
-    bookmark: false,
-  },
-  {
-    id: 8,
-    title: "Post 8",
-    description: "Description 8",
-    image: "/animal/08.jpg",
-    profile: {
-      name: "Oppica",
-      image: "/avatar/08.jpg",
-      date: "2023-08-01",
-    },
-    bookmark: false,
-  },
-  {
-    id: 9,
-    title: "Post 9",
-    description: "Description 9",
-    image: "/animal/09.jpg",
-    profile: {
-      name: "yooohan",
-      image: "/avatar/09.jpg",
-      date: "2023-09-01",
-    },
-    bookmark: false,
-  },
-  {
-    id: 10,
-    title: "Post 10",
-    description: "Description 10",
-    image: "/animal/10.jpg",
-    profile: {
-      name: "aliyah",
-      image: "/avatar/10.jpg",
-      date: "2023-10-01",
-    },
-    bookmark: false,
-  },
-];
+// Format tanggal
+const formatDate = (dateString) => {
+  const date = new Date(dateString);
+  if (isNaN(date)) return "Unknown date";
+  return date.toLocaleDateString("id-ID", {
+    day: "2-digit",
+    month: "short",
+    year: "numeric",
+  });
+};
 
-const NewsPost = () => {
-  const [postsData, setPostsData] = useState(posts);
-  const [visiblePosts, setVisiblePosts] = useState([]);
+// Potong deskripsi
+const truncateText = (text, maxLength = 100) => {
+  if (!text) return "";
+  return text.length > maxLength ? text.slice(0, maxLength) + "..." : text;
+};
+
+const NewsPost = ({ news }) => {
+  const [postsData, setPostsData] = useState(news);
+  console.log("postsData-newsAll:", postsData);
+  const toggleBookmark = useToggleMarked();
+  const setToast = useToastStore((state) => state.setToast);
 
   useEffect(() => {
-    const mobile = window.matchMedia("(max-width: 640px)");
-    const tablet = window.matchMedia(
-      "(min-width: 640px) and (max-width: 1024px)"
-    );
-    const desktop = window.matchMedia("(min-width: 1025px)");
+    setPostsData(news);
+  }, [news]);
 
-    const handleMediaQueryChange = () => {
-      if (mobile.matches) {
-        setVisiblePosts(postsData.slice(0, 1));
-      } else {
-        setVisiblePosts(postsData.slice(0, 4));
-      }
-    };
-    handleMediaQueryChange();
-    mobile.addEventListener("change", handleMediaQueryChange);
-    tablet.addEventListener("change", handleMediaQueryChange);
-    desktop.addEventListener("change", handleMediaQueryChange);
-    return () => {
-      mobile.removeEventListener("change", handleMediaQueryChange);
-      tablet.removeEventListener("change", handleMediaQueryChange);
-      desktop.removeEventListener("change", handleMediaQueryChange);
-    };
-  }, [postsData]);
+  const handleBookmark = (newsId, isBookmarked) => {
+    if (!newsId) {
+      return setToast({ type: "error", message: "News not found" });
+    }
 
-  const handleBookmark = (id) => {
-    setPostsData((prevPosts) =>
-      prevPosts.map((post) =>
-        post.id === id ? { ...post, bookmark: !post.bookmark } : post
-      )
-    );
+    toggleBookmark.mutate(newsId, {
+      onSuccess: () => {
+        setPostsData((prevNews) =>
+          prevNews.map((n) =>
+            n._id === newsId || n.id === newsId
+              ? { ...n, bookmark: !isBookmarked } // ✅ Update yang benar
+              : n
+          )
+        );
+
+        setToast({
+          type: isBookmarked ? "info" : "success",
+          message: isBookmarked
+            ? "Unbookmark successfully"
+            : "Bookmark successfully",
+        });
+      },
+      onError: (error) => {
+        setToast({
+          type: "error",
+          message: "Bookmark failed. Please login.",
+        });
+      },
+    });
   };
 
   return (
     <div className="grid grid-rows-1">
       {/* Header */}
-      <div className="flex flex-row justify-between">
-        <div className="flex flex-row gap-2 pt-5 pl-5">
-          <div className="h-3 w-1 bg-[var(--primary-color)] rounded-md mt-1"></div>
-          <h2 className="text-2xl font-bold">News Posts</h2>
+      <div className="flex flex-row justify-between items-center px-5 pt-5">
+        <div className="flex items-center gap-2">
+          <div className="h-3 w-1 bg-[var(--primary-color)] rounded-md mt-1" />
+          <h2 className="text-2xl font-bold">News</h2>
         </div>
-        <div className="p-2">
-          <Link
-            to="/news-post"
-            className="bg-gray-200 hover:bg-gray-300 text-gray-800 font-bold py-2 px-4 rounded-lg flex items-center cursor-pointer"
-          >
-            <h1>Show All</h1>
-            <RxCaretRight className="w-6 h-6" />
-          </Link>
-        </div>
+        <Link
+          to="/news-post"
+          className="bg-gray-200 hover:bg-gray-300 text-gray-800 font-bold py-2 px-4 rounded-lg flex items-center"
+        >
+          <span>Show All</span>
+          <RxCaretRight className="w-6 h-6 ml-1" />
+        </Link>
       </div>
 
       {/* Posts */}
       <div className="grid grid-cols-1 md:grid-cols-1 lg:grid-cols-2 px-4 md:px-8 pt-4 gap-5">
-        {visiblePosts.map((post) => (
-          <div
-            key={post.id}
-            className="bg-white p-4 rounded-lg shadow-md mb-4 grid md:grid-cols-2 gap-2"
-          >
-            <img
-              src={post.image}
-              alt={post.title}
-              className="w-full h-40 object-cover rounded-xl"
-            />
+        {postsData.slice(0, 4).map((post) => {
+          console.log("post-user:", post.userId);
+          return (
+            <div
+              key={post.id || post._id}
+              className="bg-white p-4 rounded-lg shadow-md grid md:grid-cols-2 gap-2"
+            >
+              {/* Image: Klik menuju detail */}
+              <Link to={`/news/${post.id || post._id}`}>
+                {post.newsImage ? (
+                  <img
+                    src={post.newsImage}
+                    alt={post.title}
+                    className="w-full h-40 object-cover rounded-xl"
+                  />
+                ) : (
+                  <video
+                    src={post.newsVideo}
+                    alt={post.title}
+                    className="w-full h-40 object-cover rounded-xl"
+                  />
+                )}
+              </Link>
 
-            <div className="flex flex-col justify-between gap-2">
-              <div>
-                <h3 className="text-lg font-bold">{post.title}</h3>
-                <p className="text-sm text-gray-700">{post.description}</p>
-              </div>
-
-              <div className="flex items-center bg-gray-100 p-2 rounded-lg shadow">
-                <img
-                  src={post.profile.image}
-                  alt={post.profile.name}
-                  className="w-8 h-8 rounded-full"
-                />
-                <div className="flex flex-col ml-2">
-                  <h3 className="text-sm font-semibold">{post.profile.name}</h3>
-                  <p className="text-xs text-gray-500">{post.profile.date}</p>
+              <div className="flex flex-col justify-between gap-2">
+                <div>
+                  {/* Judul: Klik menuju detail */}
+                  <Link to={`/news/${post.id || post._id}`}>
+                    <h3 className="text-lg font-bold hover:underline ">
+                      {post.title}
+                    </h3>
+                  </Link>
+                  <p className="text-sm text-gray-700">
+                    {truncateText(post.description, 100)}
+                  </p>
                 </div>
-                <button
-                  onClick={() => handleBookmark(post.id)}
-                  className="ml-auto cursor-pointer bg-gray-300 p-2 rounded-lg"
-                >
-                  {post.bookmark ? (
-                    <FaBookmark className="w-5 h-5" />
-                  ) : (
-                    <CiBookmark className="w-5 h-5" />
-                  )}
-                </button>
+
+                {/* Author section */}
+                <div className="flex items-center bg-gray-100 p-2 rounded-lg shadow">
+                  <img
+                    src={post.userId?.profileImage || "/avatar/01.jpg"}
+                    alt={post.author}
+                    className="w-8 h-8 rounded-full"
+                  />
+                  <div className="flex flex-col ml-2">
+                    <h3 className="text-sm font-semibold">
+                      {post.userId?.userName}
+                    </h3>
+                    <p className="text-xs text-gray-500">
+                      {post.createdAt
+                        ? formatDate(post.createdAt)
+                        : "Unknown date"}
+                    </p>
+                  </div>
+                  <button
+                    onClick={() =>
+                      handleBookmark(post.id || post._id, post.bookmark)
+                    }
+                    className="ml-auto rounded-md p-2 transition-all duration-300 ease-in-out 
+                  hover:bg-[var(--primary-color)] hover:text-white hover:shadow-md 
+                  hover:ring-2 hover:ring-[var(--primary-color)] cursor-pointer"
+                  >
+                    {post.bookmark ? (
+                      <FaBookmark className="w-5 h-5 text-blue-600" />
+                    ) : (
+                      <CiBookmark className="w-5 h-5 text-gray-600" />
+                    )}
+                  </button>
+                </div>
               </div>
             </div>
-          </div>
-        ))}
+          );
+        })}
       </div>
     </div>
   );

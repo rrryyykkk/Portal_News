@@ -1,5 +1,4 @@
-import { RxCaretLeft } from "react-icons/rx";
-import { RxCaretRight } from "react-icons/rx";
+import { RxCaretLeft, RxCaretRight } from "react-icons/rx";
 
 const SwiperBtn = ({
   variant = "desktop",
@@ -23,15 +22,14 @@ const SwiperBtn = ({
     tablet: { left: "620px" },
     desktop: { left: "1080px" },
   };
+
   return (
     <>
-      {/* Tombol Swipper */}
-
-      {/* kiri */}
+      {/* Kiri */}
       <div
         className={`${
           prevClass[variant]
-        } absolute -top-10 z-10 -translate-y-1/2  bg-gray-300 p-2 rounded-lg shadow hover:bg-gray-200 cursor-pointer ${
+        } absolute -top-10 z-10 -translate-y-1/2 bg-gray-300 p-2 rounded-lg shadow hover:bg-gray-200 cursor-pointer ${
           isBeginning ? "opacity-30 pointer-events-none" : ""
         }`}
         style={leftPos[variant]}
@@ -39,7 +37,7 @@ const SwiperBtn = ({
         <RxCaretLeft className="w-6 h-6" />
       </div>
 
-      {/* kanan */}
+      {/* Kanan */}
       <div
         className={`${
           nexClass[variant]

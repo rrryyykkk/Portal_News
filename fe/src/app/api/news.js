@@ -7,14 +7,25 @@ export const getNews = () => axiosInstance.get("/news");
 export const getNewsById = (id) => axiosInstance.get(`/news/${id}`);
 
 // createNews
-export const createNews = (data) => axiosInstance.post("/news/create", data);
+export const createNews = (formData) => {
+  axiosInstance.post("/news/create", formData, {
+    headers: {
+      "Content-Type": "multipart/form-data",
+    },
+    withCredentials: true,
+  });
+};
 
 // deleteNews
 export const deleteNews = (id) => axiosInstance.delete(`/news/delete/${id}`);
 
 // updateNews
-export const updateNews = (id, data) =>
-  axiosInstance.put(`/news/updated/${id}`, data);
+export const updateNews = (id, formData) => {
+  axiosInstance.put(`/news/updated/${id}`, formData);
+};
+
+// related news
+export const getRelatedNews = (id) => axiosInstance.get(`/news/${id}/related`);
 
 // topNews
 export const topNews = () => axiosInstance.get("/news/top");

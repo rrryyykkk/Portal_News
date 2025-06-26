@@ -5,6 +5,7 @@ import connectDB from "./config/db.js";
 import authRoutes from "./routes/auth.routes.js";
 import userRoutes from "./routes/user.routes.js";
 import newsRoutes from "./routes/news.routes.js";
+import searchRoutes from "./routes/search.routes.js";
 import activitiesRoutes from "./routes/activities.routes.js";
 import notificationRoutes from "./routes/Notification.routes.js";
 import "./middlewares/sanitaze.js";
@@ -32,6 +33,7 @@ app.use("/api/user", userRoutes);
 app.use("/api/news", newsRoutes);
 app.use("/api/activities", activitiesRoutes);
 app.use("/api/notification", notificationRoutes);
+app.use("/api/search", searchRoutes);
 
 app.listen(PORT, () => {
   console.log(`server in running in localhost:${PORT}`);

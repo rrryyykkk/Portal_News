@@ -4,6 +4,8 @@ import { FaImage } from "react-icons/fa";
 import { MdBorderColor } from "react-icons/md";
 import { IoCodeSlashOutline } from "react-icons/io5";
 import { CiTextAlignLeft, CiLink } from "react-icons/ci";
+import { useCreateNews } from "../../../app/store/useNews";
+import { useToastStore } from "../../../app/store/useToastStore";
 
 const icons = [
   { id: 1, icon: <FaImage />, name: "Image" },
@@ -11,6 +13,41 @@ const icons = [
   { id: 3, icon: <IoCodeSlashOutline />, name: "Text" },
   { id: 4, icon: <CiTextAlignLeft />, name: "Align" },
   { id: 5, icon: <CiLink />, name: "Link" },
+];
+
+const categoryOptions = [
+  {
+    value: "Politics",
+    label: "Politics",
+  },
+  {
+    value: "Sport",
+    label: "Sport",
+  },
+  {
+    value: "Technology",
+    label: "Technology",
+  },
+  {
+    value: "Entertainment",
+    label: "Entertainment",
+  },
+  {
+    value: "Business",
+    label: "Business",
+  },
+  {
+    value: "Health",
+    label: "Health",
+  },
+  {
+    value: "general",
+    label: "general",
+  },
+  {
+    value: "Other",
+    label: "Other",
+  },
 ];
 
 const IconItem = ({ icon, name, onClick }) => (
@@ -25,6 +62,9 @@ const IconItem = ({ icon, name, onClick }) => (
 );
 
 const NewsPostsVideoPage = () => {
+  const { mutate, isPending } = useCreateNews();
+  const setToast = useToastStore((state) => state.setToast);
+
   const [uploadedFile, setUploadedFile] = useState(null);
   const [title, setTitle] = useState("");
   const [category, setCategory] = useState("");
@@ -83,16 +123,30 @@ const NewsPostsVideoPage = () => {
   };
 
   const handleSubmit = () => {
-    const formData = {
-      title,
-      category,
-      explanation,
-      video: uploadedFile,
-    };
-    console.log("Submitted Video Post:", formData);
-    alert("Postingan video berhasil dikirim!");
-  };
+    if (!title || !category || !explanation || !uploadedFile) {
+      alert("all fields are required!");
+      return;
+    }
 
+    const formData = new FormData();
+    formData.append("title", title);
+    formData.append("category", category);
+    formData.append("description", explanation);
+    formData.append("newsVideo", uploadedFile);
+
+    mutate(formData, {
+      onSuccess: () => {
+        setToast({ type: "success", message: "Postingan berhasil dikirim!" });
+        setTitle("");
+        setCategory("");
+        setExplanation("");
+        setUploadedFile(null);
+      },
+      onError: () => {
+        setToast({ type: "error", message: "Postingan gagal dikirim!" });
+      },
+    });
+  };
   return (
     <section className="p-6">
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-6 mb-6">
@@ -108,13 +162,20 @@ const NewsPostsVideoPage = () => {
         </fieldset>
         <fieldset className="flex flex-col gap-2">
           <label className="text-slate-700 font-medium">Category</label>
-          <input
+          <select
             type="text"
             value={category}
             onChange={(e) => setCategory(e.target.value)}
             className="bg-slate-100 px-4 py-2 rounded-lg border border-slate-300 focus:outline-none focus:ring-2 focus:ring-indigo-400"
             placeholder="Kategori..."
-          />
+          >
+            <option value="">Pilih Kategori</option>
+            {categoryOptions.map((option) => (
+              <option key={option.value} value={option.value}>
+                {option.label}
+              </option>
+            ))}
+          </select>
         </fieldset>
       </div>
 
@@ -174,9 +235,10 @@ const NewsPostsVideoPage = () => {
       <div className="mt-6">
         <button
           onClick={handleSubmit}
+          disabled={isPending}
           className="bg-indigo-600 hover:bg-indigo-700 text-white font-semibold px-6 py-3 rounded-lg shadow transition cursor-pointer"
         >
-          Kirim Postingan
+          {isPending ? "Posting..." : "Post"}
         </button>
       </div>
     </section>

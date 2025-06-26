@@ -71,7 +71,6 @@ export const useAuthStore = create((set) => ({
   fetchUser: async () => {
     try {
       const res = await getMe();
-      console.log("getME-fe:", res.data);
       set({ user: res.data });
     } catch {
       set({ user: null });

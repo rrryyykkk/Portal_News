@@ -49,7 +49,7 @@ const userSchema = new mongoose.Schema(
     followers: [{ type: String, ref: "User" }],
     following: [{ type: String, ref: "User" }],
     likes: [{ type: mongoose.Schema.Types.ObjectId, ref: "News" }],
-    marked: [{ type: mongoose.Schema.Types.ObjectId, ref: "News" }],
+    marked: [{ type: String, ref: "News" }],
   },
   { timestamps: true }
 );

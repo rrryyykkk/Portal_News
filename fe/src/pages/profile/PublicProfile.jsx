@@ -2,16 +2,14 @@ import PageHeaders from "../../components/PageHeaders";
 import CardProfile from "../../components/profile/CardProfile";
 import HeadersPublic from "../../components/public/HeadersPublic";
 
-const PublicProfile = ({ user, viewer, news }) => {
-  const viewers = viewer.id === user.id;
-  const isMe = viewer.id === user.id;
-  console.log("viewers:", viewers);
-  console.log("isMe:", isMe);
+const PublicProfile = ({ user, viewer }) => {
+  const marked = user.marked;
+  console.log("marked:", marked);
   return (
     <div>
       <PageHeaders curPage="Public Profile" />
       <HeadersPublic user={user} viewer={viewer} />
-      <CardProfile news={news} />
+      <CardProfile marked={marked} />
     </div>
   );
 };

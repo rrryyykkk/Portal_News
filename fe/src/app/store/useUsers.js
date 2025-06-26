@@ -1,5 +1,5 @@
-import { useQueryClient, useMutation } from "@tanstack/react-query";
-import { editProfile } from "../api/users";
+import { useQueryClient, useMutation, useQuery } from "@tanstack/react-query";
+import { editProfile, getProfileById } from "../api/users";
 import { useAuthStore } from "./useAuthStore";
 
 export const useEditProfile = () => {
@@ -12,5 +12,14 @@ export const useEditProfile = () => {
       queryClient.invalidateQueries({ queryKey: ["users"] });
       fectUser();
     },
+  });
+};
+
+export const useGetUsersById = (id, options = {}) => {
+  return useQuery({
+    queryKey: ["users", id],
+    queryFn: () => getProfileById(id),
+    enabled: !!id, // default
+    ...options, // bisa override enabled dari luar
   });
 };

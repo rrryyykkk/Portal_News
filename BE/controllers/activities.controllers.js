@@ -1,3 +1,4 @@
+import mongoose, { isValidObjectId } from "mongoose";
 import Comment from "../models/comment.model.js";
 import News from "../models/news.models.js";
 import Notification from "../models/notification.models.js";
@@ -5,80 +6,91 @@ import User from "../models/user.models.js";
 
 export const likeUnlike = async (req, res) => {
   try {
-    const { newsId } = req.params;
+    const { type, targetId } = req.params;
     const userId = req.user._id;
+    console.log("type: ,targetId:", type, targetId);
 
-    const startTime = Date.now();
-    console.log(`Mulai likeUnlike...: ${startTime}ms`);
+    // Validasi tipe dan ID
+    if (!["news", "comment"].includes(type)) {
+      return res.status(400).json({ message: "Invalid type" });
+    }
 
-    const userTime = Date.now();
-    const newsTime = Date.now();
-    const [user, news] = await Promise.all([
-      User.findById(userId),
-      News.findById(newsId),
-    ]);
+    if (!isValidObjectId(targetId)) {
+      return res.status(400).json({ message: "Invalid format id" });
+    }
+
+    // Cek user
+    const user = await User.findById(userId);
     if (!user) {
       return res.status(404).json({ message: "User not found" });
     }
-    console.log("cek user:", Date.now() - userTime, "ms");
 
-    if (!news) {
-      return res.status(404).json({ message: "News not found" });
+    // Ambil target dokumen
+    const model = type === "news" ? News : Comment;
+    const targetDoc = await model.findById(targetId);
+    if (!targetDoc) {
+      return res.status(404).json({ message: `${type} not found` });
     }
-    console.log("cek news:", Date.now() - newsTime, "ms");
 
-    const indexTime = Date.now();
-    const index = user.likes.indexOf(newsId);
+    const hasLiked = user.likes.includes(targetId);
     let notificationPromise = Promise.resolve();
-    let likeChange = 0;
-    if (index === -1) {
-      user.likes.push(newsId);
-      likeChange = 1;
 
-      // nambah notification
-      if (news.userId && news.userId.toString() !== userId) {
-        notificationPromise = await Notification.create({
+    if (!hasLiked) {
+      // Batas maksimal likes
+      if (user.likes.length > 1000) {
+        return res
+          .status(400)
+          .json({ message: "You have liked too many items." });
+      }
+
+      user.likes.push(targetId);
+      targetDoc.likes = (targetDoc.likes || 0) + 1;
+
+      // Kirim notifikasi jika target bukan milik user sendiri
+      if (
+        targetDoc.userId &&
+        targetDoc.userId.toString() !== userId.toString()
+      ) {
+        notificationPromise = Notification.create({
           from: userId,
-          to: news.userId,
+          to: targetDoc.userId,
+          newsId: type === "news" ? targetId : targetDoc.newsId,
           type: "like",
-          newsId,
-          message: `${user.userName} Likes your news`,
+          message: `${user.userName} liked your ${type}`,
         });
       }
     } else {
-      // hapus notification
-      user.likes.splice(index, 1);
-      likeChange = -1;
-      notificationPromise = await Notification.findOneAndDelete({
+      // Batalkan like
+      user.likes = user.likes.filter((id) => id.toString() !== targetId);
+      targetDoc.likes = Math.max((targetDoc.likes || 1) - 1, 0);
+
+      notificationPromise = Notification.findOneAndDelete({
         from: userId,
-        to: news.userId,
+        to: targetDoc.userId,
+        newsId: type === "news" ? targetId : targetDoc.newsId,
         type: "like",
-        newsId,
       });
     }
-    console.log("cek index:", Date.now() - indexTime, "ms");
 
-    await News.findByIdAndUpdate(newsId, { $inc: { likes: likeChange } });
-    const saveTime = Date.now();
-    await Promise.all([user.save(), notificationPromise]);
-    console.log("save user:", Date.now() - saveTime, "ms");
+    await Promise.all([user.save(), targetDoc.save(), notificationPromise]);
 
-    console.log(`Selesai likeUnlike...${Date.now() - startTime}ms`);
-    res.status(200).json({ message: "likeUnlike toggled", likes: user.likes });
+    res.status(200).json({
+      message: `Successfully toggled like on ${type}`,
+      likes: targetDoc.likes,
+      liked: !hasLiked,
+    });
   } catch (error) {
-    res.status(500).json({ message: error.message });
+    console.error(error.message);
+    res.status(500).json({ error: "Internal server error" });
   }
 };
 
 export const addComment = async (req, res) => {
   try {
-    const startTime = Date.now();
     const { text, parentId = null } = req.body;
     const userId = req.user._id;
     const { newsId } = req.params;
-    console.log("Mulai addComment...", Date.now() - startTime, "ms");
 
-    const validateTime = Date.now();
     const [user, news] = await Promise.all([
       User.findById(userId).lean(),
       News.findById(newsId).lean(),
@@ -91,7 +103,6 @@ export const addComment = async (req, res) => {
     if (!news) {
       return res.status(404).json({ message: "News not found" });
     }
-    console.log("cek user & news:", Date.now() - validateTime, "ms");
 
     const commentTime = Date.now();
     const comment = await Comment.create({
@@ -100,11 +111,9 @@ export const addComment = async (req, res) => {
       text,
       parentId,
     });
-    console.log("buat comment:", Date.now() - commentTime, "ms");
 
     await News.findByIdAndUpdate(newsId, { $inc: { comments: 1 } });
 
-    const notificationTime = Date.now();
     // buat notifikasi
     if (news.userId && news.userId !== userId) {
       await Notification.create({
@@ -115,10 +124,10 @@ export const addComment = async (req, res) => {
         message: `${user.userName} comment on your news:${text}`,
       });
     }
-    console.log("buat notifikasi:", Date.now() - notificationTime, "ms");
 
     res.status(200).json({ message: "Comment added", comment: comment });
   } catch (error) {
+    console.log(error.message);
     res.status(500).json({ error: error.message });
   }
 };
@@ -196,6 +205,7 @@ export const replyComment = async (req, res) => {
 
     res.status(200).json({ message: "Reply added", comment });
   } catch (error) {
+    console.log(error.message);
     res.status(500).json({ error: error.message });
   }
 };
@@ -226,42 +236,38 @@ export const markedNews = async (req, res) => {
     const { newsId } = req.params;
     const userId = req.user._id;
 
+    if (!mongoose.Types.ObjectId.isValid(newsId)) {
+      return res.status(404).json({ message: "Invalid newsId" });
+    }
+
     const [user, news] = await Promise.all([
       User.findById(userId),
       News.findById(newsId),
     ]);
 
-    console.log("user:", user);
-    console.log("news:", news);
-    // cek user dan news
-    if (!user) {
-      return res.status(404).json({ message: "User not found" });
-    }
-    if (!news) {
-      return res.status(404).json({ message: "News not found" });
-    }
+    if (!user) return res.status(404).json({ message: "User not found" });
+    if (!news) return res.status(404).json({ message: "News not found" });
 
-    const index = user.marked.indexOf(newsId);
-    console.log("index:", index);
+    const index = user.marked.findIndex((id) => id === newsId);
+
     let notificationPromise = Promise.resolve();
+
     if (index === -1) {
       user.marked.push(newsId);
 
-      // nambah notification
       if (news.userId && news.userId !== userId) {
-        notificationPromise = await Notification.create({
+        notificationPromise = Notification.create({
           from: userId,
           to: news.userId,
           type: "marked",
           newsId,
-          message: `${user.userName} Marked your news`,
+          message: `${user.userName} marked your news`,
         });
-        console.log("Notification:", Notification.create);
       }
     } else {
-      // hapus notification
       user.marked.splice(index, 1);
-      notificationPromise = await Notification.findOneAndDelete({
+
+      notificationPromise = Notification.findOneAndDelete({
         from: userId,
         to: news.userId,
         type: "marked",
@@ -271,9 +277,23 @@ export const markedNews = async (req, res) => {
 
     await Promise.all([notificationPromise, user.save()]);
 
-    res.status(200).json({ message: "marked active", marked: user.marked });
-    console.log("marked:", user.marked);
+    await user.populate({
+      path: "marked",
+      model: "News", // 🔥 WAJIB kalau pakai ref: String
+      select:
+        "_id title newsImage newsVideo views likes comments createdAt category description",
+      options: { sort: { createdAt: -1 } },
+    });
+
+    res.status(200).json({
+      message: "Marked updated",
+      marked: user.marked,
+    });
   } catch (error) {
-    res.status(500).json({ error: error.message });
+    console.error("❌ Marked Error:", error.message);
+    res.status(500).json({
+      error: error.message,
+      message: "Failed to update marked news",
+    });
   }
 };

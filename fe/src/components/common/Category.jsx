@@ -1,18 +1,39 @@
-import { Link } from "react-router-dom"; // jika pakai React Router
+import { Link } from "react-router-dom";
+
+// Gambar default kategori
+const categoriesImage = {
+  Politics: "/categories/politics.jpg",
+  Sport: "/sport/06.jpg",
+  Technology: "/technology/01.jpg",
+  Entertainment: "/categories/entertaiment.jpg",
+  Business: "/categories/bisnis.jpg",
+  Health: "/categories/health.jpg",
+  general: "/categories/general.jpg",
+  Other: "/categories/other.jpg",
+};
 
 const Category = ({ news }) => {
+  
   const getUniqueCategories = (news, limit = 7) => {
     const map = new Map();
+
     news.forEach((item) => {
-      const key = item.category.toLowerCase();
+      const rawCategory = item?.category;
+      if (!rawCategory) return; // Skip jika category undefined/null
+
+      const normalized =
+        rawCategory[0].toUpperCase() + rawCategory.slice(1).toLowerCase();
+      const key = normalized.toLowerCase();
+
       if (!map.has(key)) {
         map.set(key, {
-          id: item.id,
-          text: item.category,
-          img: item.img,
+          id: item._id || item.id || key,
+          text: normalized,
+          img: categoriesImage[normalized] || categoriesImage["general"],
         });
       }
     });
+
     return Array.from(map.values()).slice(0, limit);
   };
 

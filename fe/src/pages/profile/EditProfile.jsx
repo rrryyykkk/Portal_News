@@ -3,6 +3,7 @@ import { useDropzone } from "react-dropzone";
 import { useState, useCallback, useRef } from "react";
 import { useToastStore } from "../../app/store/useToastStore";
 import { useEditProfile } from "../../app/store/useUsers";
+import { useNavigate } from "react-router-dom";
 
 const convertToBase64 = (file) => {
   return new Promise((resolve, reject) => {
@@ -24,6 +25,7 @@ const EditProfilePage = () => {
   const [profileImg, setProfileImg] = useState(null);
   const [bannerImg, setBannerImg] = useState(null);
   const bioRef = useRef();
+  const navigate = useNavigate();
 
   const { setToast } = useToastStore();
   const { mutate: editProfile, isPending } = useEditProfile();
@@ -80,6 +82,7 @@ const EditProfilePage = () => {
               type: "success",
               message: "Profile updated successfully",
             });
+            navigate("/profile/me");
           },
           onError: (error) => {
             setToast({ type: "error", message: error?.response?.data.message });

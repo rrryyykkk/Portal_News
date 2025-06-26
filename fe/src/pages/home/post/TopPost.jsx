@@ -1,143 +1,46 @@
 import { useEffect, useRef, useState } from "react";
-
-// icons
 import { CiBookmark } from "react-icons/ci";
 import { FaBookmark } from "react-icons/fa";
-
-// swiper
 import { Navigation, Pagination } from "swiper/modules";
 import { Swiper, SwiperSlide } from "swiper/react";
 import SwiperBtn from "../../../components/common/SwiperBtn";
+import { useRelatedNews } from "../../../app/store/useNews";
 
-const posts = [
-  {
-    id: 1,
-    title: "Post 1",
-    description: "Description 1",
-    image: "/animal/01.jpg",
-    profile: {
-      name: "John Doe",
-      image: "/avatar/01.jpg",
-      date: "2023-01-01",
-    },
-    bookmark: false,
-  },
-  {
-    id: 2,
-    title: "Post 2",
-    description: "Description 2",
-    image: "/animal/02.jpg",
-    profile: {
-      name: "Joni Dun",
-      image: "/avatar/02.jpg",
-      date: "2023-02-01",
-    },
-    bookmark: false,
-  },
-  {
-    id: 3,
-    title: "Post 3",
-    description: "Description 3",
-    image: "/animal/03.jpg",
-    profile: {
-      name: "Johan Dee",
-      image: "/avatar/03.jpg",
-      date: "2023-03-01",
-    },
-    bookmark: false,
-  },
-  {
-    id: 4,
-    title: "Post 4",
-    description: "Description 4",
-    image: "/animal/04.jpg",
-    profile: {
-      name: "ana Doe",
-      image: "/avatar/04.jpg",
-      date: "2023-04-01",
-    },
-    bookmark: false,
-  },
-  {
-    id: 5,
-    title: "Post 5",
-    description: "Description 5",
-    image: "/animal/05.jpg",
-    profile: {
-      name: "sarah Doe",
-      image: "/avatar/05.jpg",
-      date: "2023-05-01",
-    },
-    bookmark: false,
-  },
-  {
-    id: 6,
-    title: "Post 6",
-    description: "Description 6",
-    image: "/animal/06.jpg",
-    profile: {
-      name: "Hanna Doe",
-      image: "/avatar/06.jpg",
-      date: "2023-06-01",
-    },
-    bookmark: false,
-  },
-  {
-    id: 7,
-    title: "Post 7",
-    description: "Description 7",
-    image: "/animal/07.jpg",
-    profile: {
-      name: "hanna",
-      image: "/avatar/07.jpg",
-      date: "2023-07-01",
-    },
-    bookmark: false,
-  },
-  {
-    id: 8,
-    title: "Post 8",
-    description: "Description 8",
-    image: "/animal/08.jpg",
-    profile: {
-      name: "Oppica",
-      image: "/avatar/08.jpg",
-      date: "2023-08-01",
-    },
-    bookmark: false,
-  },
-  {
-    id: 9,
-    title: "Post 9",
-    description: "Description 9",
-    image: "/animal/09.jpg",
-    profile: {
-      name: "yooohan",
-      image: "/avatar/09.jpg",
-      date: "2023-09-01",
-    },
-    bookmark: false,
-  },
-  {
-    id: 10,
-    title: "Post 10",
-    description: "Description 10",
-    image: "/animal/10.jpg",
-    profile: {
-      name: "aliyah",
-      image: "/avatar/10.jpg",
-      date: "2023-10-01",
-    },
-    bookmark: false,
-  },
-];
+// Format tanggal
+const formatDate = (dateString) => {
+  const date = new Date(dateString);
+  if (isNaN(date)) return "Unknown date";
+  return date.toLocaleDateString("id-ID", {
+    day: "2-digit",
+    month: "short",
+    year: "numeric",
+  });
+};
 
-const TopPost = () => {
+const RelatedPost = ({ newsId, toggleBookmark, setToast }) => {
+  const { data, isLoading, isError } = useRelatedNews(newsId);
   const swiperRef = useRef(null);
   const [isBeginning, setIsBeginning] = useState(true);
   const [isEnd, setIsEnd] = useState(false);
   const [screen, setScreen] = useState("desktop");
-  const [postsData, setPostsData] = useState(posts);
+  const [postsData, setPostsData] = useState([]);
+
+  useEffect(() => {
+    if (data?.data?.relatedNews) {
+      const normalized = data.data.relatedNews.map((item) => {
+        const doc = item._doc || item;
+        const isExternal = !item._id;
+        return {
+          ...doc,
+          _id: item._id || item.externalId,
+          bookmark: item.bookmark || false,
+          userId: item.userId?._id ? item.userId : null,
+          isExternal,
+        };
+      });
+      setPostsData(normalized);
+    }
+  }, [data]);
 
   useEffect(() => {
     const mobile = window.matchMedia("(max-width: 640px)");
@@ -145,19 +48,18 @@ const TopPost = () => {
       "(min-width: 641px) and (max-width: 1024px)"
     );
     const desktop = window.matchMedia("(min-width: 1025px)");
+
     const handleMediaQueryChange = () => {
-      if (mobile.matches) {
-        setScreen("mobile");
-      } else if (tablet.matches) {
-        setScreen("tablet");
-      } else {
-        setScreen("desktop");
-      }
+      if (mobile.matches) setScreen("mobile");
+      else if (tablet.matches) setScreen("tablet");
+      else setScreen("desktop");
     };
+
     handleMediaQueryChange();
     mobile.addEventListener("change", handleMediaQueryChange);
     tablet.addEventListener("change", handleMediaQueryChange);
     desktop.addEventListener("change", handleMediaQueryChange);
+
     return () => {
       mobile.removeEventListener("change", handleMediaQueryChange);
       tablet.removeEventListener("change", handleMediaQueryChange);
@@ -173,34 +75,76 @@ const TopPost = () => {
     }
   };
 
-  const handleBookmark = (id) => {
-    setPostsData((prevPosts) =>
-      prevPosts.map((post) =>
-        post.id === id ? { ...post, bookmark: !post.bookmark } : post
-      )
-    );
+  const handleBookmark = (postId, isBookmarked) => {
+    
+    if (!postId || postId.length !== 24) {
+      return setToast({
+        type: "error",
+        message: "Bookmark hanya tersedia untuk berita dari admin.",
+      });
+    }
+
+    toggleBookmark.mutate(postId, {
+      onSuccess: () => {
+        setPostsData((prevNews) =>
+          prevNews.map((n) =>
+            n._id === postId ? { ...n, bookmark: !isBookmarked } : n
+          )
+        );
+
+        setToast({
+          type: isBookmarked ? "info" : "success",
+          message: isBookmarked
+            ? "Unbookmark successfully"
+            : "Bookmark successfully",
+        });
+      },
+      onError: (error) => {
+        setToast({
+          type: "error",
+          message:
+            error?.response?.data?.message || "Bookmark failed. Please login.",
+        });
+      },
+    });
   };
+
+  if (isLoading)
+    return (
+      <div className="flex justify-center items-center h-[200px]">
+        <span className="loading loading-ring loading-lg text-primary"></span>
+      </div>
+    );
+
+  if (isError)
+    return (
+      <div className="flex flex-col items-center justify-center h-[200px] text-center">
+        <div className="text-red-500 text-3xl mb-2">⚠️</div>
+        <h2 className="text-xl font-semibold text-red-600">
+          Terjadi Kesalahan
+        </h2>
+        <p className="text-gray-500">Gagal memuat data. Silakan coba lagi.</p>
+      </div>
+    );
 
   const navVariant =
     screen === "mobile" ? "mobile" : screen === "tablet" ? "tablet" : "desktop";
-  // screen === "mobile" ? "mobile" : screen === "tablet" ? "tablet" : "desktop";
-  console.log("navVariant:", navVariant);
+
   return (
     <div className="grid grid-cols-1 py-5">
-      {/* atas */}
       <div className="flex items-center gap-2 pt-5 pl-4 mb-5">
         <div className="h-3 w-1 bg-[var(--primary-color)] rounded-md mt-1"></div>
-        <h2 className="text-2xl font-bold">Top Post</h2>
+        <h2 className="text-2xl font-bold">RelatedPost</h2>
       </div>
+
       <div className="relative w-full h-[430px] px-4">
-        {/* Tombol Panah  */}
         <SwiperBtn
           variant={navVariant}
-          variantName="top"
+          variantName="related"
           isBeginning={isBeginning}
           isEnd={isEnd}
         />
-        {/* Swiper */}
+
         <Swiper
           key={navVariant}
           modules={[Navigation, Pagination]}
@@ -211,8 +155,8 @@ const TopPost = () => {
             1280: { slidesPerView: 4.2, spaceBetween: 20 },
           }}
           navigation={{
-            prevEl: `.${navVariant}-prev-${"top"}`,
-            nextEl: `.${navVariant}-next-${"top"}`,
+            prevEl: `.${navVariant}-prev-related`,
+            nextEl: `.${navVariant}-next-related`,
           }}
           pagination={{ clickable: true }}
           onSlideChange={handleSlideChange}
@@ -223,33 +167,60 @@ const TopPost = () => {
           }}
           className="h-full"
         >
-          {postsData.slice(0, 10).map((post) => (
-            <SwiperSlide key={post.id} className="h-full">
+          {postsData.map((post) => (
+            <SwiperSlide key={post._id || post.externalId} className="h-full">
               <div className="h-full flex flex-col justify-between space-y-2 shadow rounded-lg p-3 bg-white">
-                <img
-                  src={post.image}
-                  alt={post.title}
-                  className="w-full h-48 object-cover rounded-lg"
-                />
+                {post.newsImage ? (
+                  <img
+                    src={post.newsImage}
+                    alt={post.title}
+                    className="w-full h-40 object-cover rounded-xl transition duration-300 hover:scale-105"
+                  />
+                ) : (
+                  <video
+                    src={post.newsVideo}
+                    className="w-full h-40 object-cover rounded-xl"
+                  />
+                )}
+
                 <h3 className="text-lg font-semibold">{post.title}</h3>
                 <p className="text-gray-600 text-sm">{post.description}</p>
+
                 <div className="bg-gray-200 flex items-center gap-2 rounded-lg p-2">
                   <img
-                    src={post.profile.image}
-                    alt={post.profile.name}
+                    src={post.userId?.profileImage || "/avatar/01.jpg"}
+                    alt={post.userId?.userName || "anonymous"}
                     className="w-8 h-8 object-cover rounded-md"
                   />
                   <div>
                     <h4 className="text-sm font-semibold">
-                      {post.profile.name}
+                      {post.userId?.fullName || "anonymous"}
                     </h4>
-                    <p className="text-xs text-gray-600">{post.profile.date}</p>
+                    <p className="text-xs text-gray-600">
+                      {formatDate(post.createdAt)}
+                    </p>
                   </div>
                   <button
-                    onClick={() => handleBookmark(post.id)}
-                    className="ml-auto rounded-md  transition cursor-pointer hover:bg-gray-200 p-2"
+                    onClick={() => {
+                      if (post.isExternal) {
+                        setToast({
+                          type: "info",
+                          message:
+                            "Bookmark hanya tersedia untuk berita dari admin.",
+                        });
+                        return;
+                      }
+                      handleBookmark(post._id, post.bookmark);
+                    }}
+                    className="ml-auto rounded-md p-2 transition-all duration-300 ease-in-out 
+                    hover:bg-[var(--primary-color)] hover:text-white hover:shadow-md 
+                    hover:ring-2 hover:ring-[var(--primary-color)] cursor-pointer"
                   >
-                    {post.bookmark ? <FaBookmark /> : <CiBookmark />}
+                    {post.bookmark ? (
+                      <FaBookmark className="w-5 h-5 text-yellow-500" />
+                    ) : (
+                      <CiBookmark className="w-5 h-5" />
+                    )}
                   </button>
                 </div>
               </div>
@@ -261,4 +232,4 @@ const TopPost = () => {
   );
 };
 
-export default TopPost;
+export default RelatedPost;

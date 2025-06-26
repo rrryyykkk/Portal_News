@@ -75,11 +75,9 @@ export const registerWithEmail = async (req, res) => {
 export const loginWithEmail = async (req, res) => {
   try {
     const { idToken } = req.body;
-    console.log("idToken-be:", idToken);
 
     // verifikasi token dari firebase
     const decoded = await admin.auth().verifyIdToken(idToken);
-    console.log("decoded:", decoded);
 
     // cek jika uid tidak ada
     if (!decoded || !decoded.uid) {
@@ -88,7 +86,6 @@ export const loginWithEmail = async (req, res) => {
 
     // cari user berdasarkan uid
     const user = await User.findOne({ _id: decoded.uid });
-    console.log("user:", user);
 
     if (!user) {
       return res.status(400).json({ message: "User not found" });

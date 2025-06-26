@@ -49,15 +49,16 @@ const Login = () => {
       await loginUser(formData); // login ke backend
       const me = useAuthStore.getState().user;
       if (me) {
-        setToast("Login success", "success");
+        setToast({ message: "Login successfully", type: "success" });
         navigate(from, { replace: true });
       }
     } catch (err) {
-      setToast(
-        err?.response?.data?.message ||
+      setToast({
+        message:
+          err?.response?.data?.message ||
           "Login failed, please check your credentials",
-        "error"
-      );
+        type: "error",
+      });
     } finally {
       setLoading(false);
     }

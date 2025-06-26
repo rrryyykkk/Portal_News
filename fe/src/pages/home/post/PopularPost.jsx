@@ -1,4 +1,9 @@
+/* eslint-disable no-unused-vars */
 import { useEffect, useRef, useState } from "react";
+
+// components
+import Loading from "../../../components/common/Loading";
+import Error from "../../../components/common/Error";
 
 // icons
 import { CiBookmark } from "react-icons/ci";
@@ -9,135 +14,42 @@ import { Navigation, Pagination } from "swiper/modules";
 import { Swiper, SwiperSlide } from "swiper/react";
 import SwiperBtn from "../../../components/common/SwiperBtn";
 
-const posts = [
-  {
-    id: 1,
-    title: "Post 1",
-    description: "Description 1",
-    image: "/animal/01.jpg",
-    profile: {
-      name: "John Doe",
-      image: "/avatar/01.jpg",
-      date: "2023-01-01",
-    },
-    bookmark: false,
-  },
-  {
-    id: 2,
-    title: "Post 2",
-    description: "Description 2",
-    image: "/animal/02.jpg",
-    profile: {
-      name: "Joni Dun",
-      image: "/avatar/02.jpg",
-      date: "2023-02-01",
-    },
-    bookmark: false,
-  },
-  {
-    id: 3,
-    title: "Post 3",
-    description: "Description 3",
-    image: "/animal/03.jpg",
-    profile: {
-      name: "Johan Dee",
-      image: "/avatar/03.jpg",
-      date: "2023-03-01",
-    },
-    bookmark: false,
-  },
-  {
-    id: 4,
-    title: "Post 4",
-    description: "Description 4",
-    image: "/animal/04.jpg",
-    profile: {
-      name: "ana Doe",
-      image: "/avatar/04.jpg",
-      date: "2023-04-01",
-    },
-    bookmark: false,
-  },
-  {
-    id: 5,
-    title: "Post 5",
-    description: "Description 5",
-    image: "/animal/05.jpg",
-    profile: {
-      name: "sarah Doe",
-      image: "/avatar/05.jpg",
-      date: "2023-05-01",
-    },
-    bookmark: false,
-  },
-  {
-    id: 6,
-    title: "Post 6",
-    description: "Description 6",
-    image: "/animal/06.jpg",
-    profile: {
-      name: "Hanna Doe",
-      image: "/avatar/06.jpg",
-      date: "2023-06-01",
-    },
-    bookmark: false,
-  },
-  {
-    id: 7,
-    title: "Post 7",
-    description: "Description 7",
-    image: "/animal/07.jpg",
-    profile: {
-      name: "hanna",
-      image: "/avatar/07.jpg",
-      date: "2023-07-01",
-    },
-    bookmark: false,
-  },
-  {
-    id: 8,
-    title: "Post 8",
-    description: "Description 8",
-    image: "/animal/08.jpg",
-    profile: {
-      name: "Oppica",
-      image: "/avatar/08.jpg",
-      date: "2023-08-01",
-    },
-    bookmark: false,
-  },
-  {
-    id: 9,
-    title: "Post 9",
-    description: "Description 9",
-    image: "/animal/09.jpg",
-    profile: {
-      name: "yooohan",
-      image: "/avatar/09.jpg",
-      date: "2023-09-01",
-    },
-    bookmark: false,
-  },
-  {
-    id: 10,
-    title: "Post 10",
-    description: "Description 10",
-    image: "/animal/10.jpg",
-    profile: {
-      name: "aliyah",
-      image: "/avatar/10.jpg",
-      date: "2023-10-01",
-    },
-    bookmark: false,
-  },
-];
+// hooks
+import { usePopularNews } from "../../../app/store/useNews";
+import { useToggleMarked } from "../../../app/store/useActivities";
+
+// assets
+import defaultProfile from "/avatar/01.jpg";
+import { Link } from "react-router-dom";
+import { useToastStore } from "../../../app/store/useToastStore";
+
+// date formatter
+const formatDate = (dateString) => {
+  const date = new Date(dateString);
+  if (isNaN(date)) return "Unknown date";
+  return date.toLocaleDateString("id-ID", {
+    day: "2-digit",
+    month: "short",
+    year: "numeric",
+  });
+};
 
 const PopularPost = () => {
   const swiperRef = useRef(null);
   const [isBeginning, setIsBeginning] = useState(true);
   const [isEnd, setIsEnd] = useState(false);
   const [screen, setScreen] = useState("desktop");
-  const [postsData, setPostsData] = useState(posts);
+  const [news, setNews] = useState([]);
+
+  const { data: postsData, isLoading, isError } = usePopularNews();
+  const toggleMarked = useToggleMarked();
+  const setToast = useToastStore((state) => state.setToast);
+
+  useEffect(() => {
+    if (postsData?.data?.news) {
+      setNews(postsData.data.news.slice(0, 10));
+    }
+  }, [postsData]);
 
   useEffect(() => {
     const mobile = window.matchMedia("(max-width: 640px)");
@@ -173,33 +85,61 @@ const PopularPost = () => {
     }
   };
 
-  const handleBookmark = (id) => {
-    setPostsData((prevPosts) =>
-      prevPosts.map((post) =>
-        post.id === id ? { ...post, bookmark: !post.bookmark } : post
-      )
-    );
+  const handleBookmark = (newsId, isBookmarked) => {
+    if (!newsId) {
+      return setToast({ type: "error", message: "News not found" });
+    }
+
+    toggleMarked.mutate(newsId, {
+      onSuccess: () => {
+        setNews((prevNews) =>
+          prevNews.map(
+            (n) => (n._id === newsId ? { ...n, bookmark: !isBookmarked } : n) // ✅ ini kuncinya
+          )
+        );
+
+        setToast({
+          type: isBookmarked ? "info" : "success",
+          message: isBookmarked
+            ? "Unbookmark successfully"
+            : "Bookmark successfully",
+        });
+      },
+      onError: (error) => {
+        setToast({
+          type: "error",
+          message: "Bookmark failed. Please login.",
+        });
+      },
+    });
   };
 
   const navVariant =
     screen === "mobile" ? "mobile" : screen === "tablet" ? "tablet" : "desktop";
-  // screen === "mobile" ? "mobile" : screen === "tablet" ? "tablet" : "desktop";
-  console.log("navVariant:", navVariant);
+
+  if (isLoading) return <Loading message="Loading..." />;
+  if (isError || !postsData?.data?.news)
+    return <Error message="Failed to load news" />;
+
+  if (news.length === 0) {
+    return <Error message="No popular news found" />;
+  }
+
   return (
     <div className="grid grid-cols-1">
-      {/* atas */}
+      {/* Header */}
       <div className="flex items-center gap-2 pt-5 pl-4 mb-5">
         <div className="h-3 w-1 bg-[var(--primary-color)] rounded-md mt-1"></div>
         <h2 className="text-2xl font-bold">Popular Posts</h2>
       </div>
+
+      {/* Slider */}
       <div className="relative w-full h-[430px] px-4">
-        {/* Tombol Panah  */}
         <SwiperBtn
           variant={navVariant}
           isBeginning={isBeginning}
           isEnd={isEnd}
         />
-        {/* Swiper */}
         <Swiper
           key={navVariant}
           modules={[Navigation, Pagination]}
@@ -222,33 +162,59 @@ const PopularPost = () => {
           }}
           className="h-full"
         >
-          {postsData.slice(0, 10).map((post) => (
-            <SwiperSlide key={post.id} className="h-full">
+          {news.map((post) => (
+            <SwiperSlide key={post._id || post.id} className="h-full">
               <div className="h-full flex flex-col justify-between space-y-2 shadow rounded-lg p-3 bg-white">
-                <img
-                  src={post.image}
-                  alt={post.title}
-                  className="w-full h-48 object-cover rounded-lg"
-                />
-                <h3 className="text-lg font-semibold">{post.title}</h3>
-                <p className="text-gray-600 text-sm">{post.description}</p>
+                <Link to={`/news/${post._id || post.id}`}>
+                  {post.newsImage ? (
+                    <img
+                      src={post.newsImage}
+                      alt={post.title}
+                      className="w-full h-40 object-cover rounded-xl transition duration-300 hover:scale-105"
+                    />
+                  ) : (
+                    <video
+                      src={post.newsVideo}
+                      alt={post.title}
+                      className="w-full h-40 object-cover rounded-xl"
+                    />
+                  )}
+                </Link>
+                <Link to={`/news/${post._id || post.id}`}>
+                  <h3 className="text-lg font-semibold line-clamp-2 hover:underline">
+                    {post.title || "Untitled"}
+                  </h3>
+                </Link>
+                <p className="text-gray-600 text-sm line-clamp-3">
+                  {post.description || "No description available."}
+                </p>
                 <div className="bg-gray-200 flex items-center gap-2 rounded-lg p-2">
                   <img
-                    src={post.profile.image}
-                    alt={post.profile.name}
+                    src={post.profile?.image || defaultProfile}
+                    alt={post.author || "Unknown"}
                     className="w-8 h-8 object-cover rounded-md"
                   />
                   <div>
                     <h4 className="text-sm font-semibold">
-                      {post.profile.name}
+                      {post.author || "Unknown"}
                     </h4>
-                    <p className="text-xs text-gray-600">{post.profile.date}</p>
+                    <p className="text-xs text-gray-600">
+                      {post.createdAt
+                        ? formatDate(post.createdAt)
+                        : "Unknown date"}
+                    </p>
                   </div>
                   <button
-                    onClick={() => handleBookmark(post.id)}
-                    className="ml-auto rounded-md  transition cursor-pointer hover:bg-gray-200 p-2"
+                    onClick={() => handleBookmark(post._id, post.bookmark)}
+                    className="ml-auto rounded-md p-2 transition-all duration-300 ease-in-out 
+                    hover:bg-[var(--primary-color)] hover:text-white hover:shadow-md 
+                    hover:ring-2 hover:ring-[var(--primary-color)] cursor-pointer"
                   >
-                    {post.bookmark ? <FaBookmark /> : <CiBookmark />}
+                    {post.bookmark ? (
+                      <FaBookmark className="w-5 h-5" />
+                    ) : (
+                      <CiBookmark className="w-5 h-5" />
+                    )}
                   </button>
                 </div>
               </div>

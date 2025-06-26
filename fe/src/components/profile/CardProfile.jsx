@@ -3,22 +3,33 @@ import { FaBookmark } from "react-icons/fa";
 import { useState } from "react";
 
 /**
- * @param {{ news: object[], onBookmark?: function }} props
+ * @param {{ news?: object[], marked?: object[], onBookmark?: function }} props
  */
-const CardProfile = ({ news, onBookmark = () => {} }) => {
+const CardProfile = ({ news = [], marked = [], onBookmark = () => {} }) => {
   const ITEMS_PER_PAGE = 9;
   const [currentPage, setCurrentPage] = useState(1);
 
-  const totalPages = Math.ceil(news.length / ITEMS_PER_PAGE);
+  // Gunakan marked jika tersedia
+  const dataToShow = Array.isArray(marked) && marked.length > 0 ? marked : news;
+
+  if (!Array.isArray(dataToShow)) {
+    return <div className="p-4 text-red-500">Invalid news data</div>;
+  }
+
+  const totalPages = Math.ceil(dataToShow.length / ITEMS_PER_PAGE);
   const startIndex = (currentPage - 1) * ITEMS_PER_PAGE;
-  const currentNews = news.slice(startIndex, startIndex + ITEMS_PER_PAGE);
+  const currentNews = dataToShow.slice(startIndex, startIndex + ITEMS_PER_PAGE);
 
   const handlePageChange = (page) => {
     if (page >= 1 && page <= totalPages) {
       setCurrentPage(page);
-      window.scrollTo({ top: 0, behavior: "smooth" }); // Scroll ke atas saat ganti halaman
+      window.scrollTo({ top: 0, behavior: "smooth" });
     }
   };
+
+  if (dataToShow.length === 0) {
+    return <div className="p-4 text-gray-500">No news found.</div>;
+  }
 
   return (
     <div className="w-full">
@@ -32,31 +43,43 @@ const CardProfile = ({ news, onBookmark = () => {} }) => {
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-5 p-3">
         {currentNews.map((item) => (
           <div
-            key={item.id}
+            key={item._id}
             className="bg-white shadow-md hover:shadow-lg rounded-xl overflow-hidden transition-all duration-300"
           >
             <img
-              src={item.img}
+              src={item.newsImage || "/placeholder.jpg"}
               alt={item.title}
               className="w-full h-48 object-cover"
             />
             <div className="p-4">
               <h3 className="font-bold text-lg mb-2">{item.title}</h3>
-              <p className="text-sm text-gray-600 mb-4">{item.description}</p>
+              <p className="text-sm text-gray-600 mb-4">
+                {item.description?.slice(0, 100)}...
+              </p>
 
               {/* Footer */}
               <div className="flex items-center gap-3 bg-gray-100 p-2 rounded-lg">
                 <div className="avatar">
                   <div className="w-10 h-10 rounded-xl overflow-hidden">
-                    <img src={item.user.img} alt={item.user.name} />
+                    <img
+                      src={item.userId?.profileImage || "/avatar/01.jpg"}
+                      alt={item.userId?.userName || "User"}
+                    />
                   </div>
                 </div>
                 <div>
-                  <h4 className="font-bold text-sm">{item.user.name}</h4>
-                  <p className="text-xs text-gray-600">{item.date}</p>
+                  <h4 className="font-bold text-sm">
+                    {item.userId?.userName || "Unknown"}
+                  </h4>
+                  <p className="text-xs text-gray-600">
+                    {new Date(item.createdAt).toLocaleDateString()}
+                  </p>
                 </div>
-                <button className="ml-auto" onClick={() => onBookmark(item.id)}>
-                  {item.bookmark ? (
+                <button
+                  className="ml-auto"
+                  onClick={() => onBookmark(item._id)}
+                >
+                  {marked.includes(item._id) ? ( // default semua marked aktif
                     <FaBookmark className="w-5 h-5 text-[var(--primary-color)]" />
                   ) : (
                     <CiBookmark className="w-5 h-5 text-gray-600" />
@@ -68,11 +91,9 @@ const CardProfile = ({ news, onBookmark = () => {} }) => {
         ))}
       </div>
 
-      {/* Pagination controls */}
-      {/* Pagination controls */}
-      <div className="flex flex-col items-start gap-3 my-6 px-3 ">
+      {/* Pagination */}
+      <div className="flex flex-col items-start gap-3 my-6 px-3">
         <div className="flex items-center gap-2">
-          {/* Prev Button */}
           <button
             onClick={() => handlePageChange(currentPage - 1)}
             disabled={currentPage === 1}
@@ -95,7 +116,6 @@ const CardProfile = ({ news, onBookmark = () => {} }) => {
             Prev
           </button>
 
-          {/* Page Numbers */}
           {Array.from({ length: totalPages }, (_, i) => i + 1).map((page) => (
             <button
               key={page}
@@ -110,7 +130,6 @@ const CardProfile = ({ news, onBookmark = () => {} }) => {
             </button>
           ))}
 
-          {/* Next Button */}
           <button
             onClick={() => handlePageChange(currentPage + 1)}
             disabled={currentPage === totalPages}

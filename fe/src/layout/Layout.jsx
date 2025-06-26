@@ -11,7 +11,6 @@ const Layout = ({ children, meUser }) => {
   } = useNews();
 
   const newsList = newsData?.data?.news || [];
-  console.log("newsList-layout:", newsList);
 
   return (
     <div className="min-h-screen bg-gray-100">
