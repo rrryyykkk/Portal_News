@@ -40,13 +40,11 @@ export const useAuthStore = create((set) => ({
 
       // ambil token dari firebase
       const idToken = await user.getIdToken();
-      console.log("✅ ID Token Firebase:", idToken);
 
       // login ke backend
       await loginToBackend({ idToken });
 
       const res = await getMe();
-      console.log("✅ User fetched from backend:", res.data);
 
       set({ user: res.data });
     } catch (error) {

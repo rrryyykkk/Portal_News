@@ -28,6 +28,9 @@ const MainContent = ({
   newsId,
   isBookmarked,
   setIsBookmarked,
+  handleFollow,
+  isPending,
+  isFollowing,
 }) => {
   const {
     title,
@@ -126,6 +129,9 @@ const MainContent = ({
           newsId={newsId}
           isBookmarked={isBookmarked}
           setIsBookmarked={setIsBookmarked}
+          handleFollow={handleFollow}
+          isPending={isPending}
+          isFollowing={isFollowing}
         />
       </div>
     </div>

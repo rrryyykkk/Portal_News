@@ -29,14 +29,11 @@ const SideBar = ({
   newsId,
   isBookmarked,
   setIsBookmarked,
+  handleFollow,
+  isPending,
+  isFollowing,
 }) => {
-  const [follow, setFollow] = useState(false);
   const { data: topNews } = useTopNews();
-
-  const handleFollow = () => {
-    setFollow(!follow);
-    console.log(follow);
-  };
 
   const handleBookmark = (newsId) => {
     if (!newsId) {
@@ -82,37 +79,52 @@ const SideBar = ({
         </div>
       </div>
       {/* profile */}
-      <div className="flex items-center justify-between bg-white rounded-2xl px-4 py-3 shadow-sm w-full">
-        {/* avatar + name */}
-        <div className="flex items-center gap-4">
+      <div className="flex items-center bg-white rounded-2xl px-4 py-3 shadow-sm w-full">
+        {/* Avatar + Name */}
+        <div className="flex items-center gap-4 w-full">
+          {/* Avatar */}
           <div className="avatar shrink-0">
-            <div className="w-16 h-16 rounded-xl overflow-hidden">
+            <div className="w-16 h-16 rounded-xl overflow-hidden bg-gray-200">
               <img
                 alt="User Avatar"
                 src={user.profileImage || "/avatar/01.jpg"}
+                className="object-cover w-full h-full"
               />
             </div>
           </div>
-          <div className="flex flex-col  w-fit gap-2">
-            <div className="flex flex-row items-center justify-between gap-15">
-              <h2 className="text-base font-semibold text-gray-800">
+
+          {/* Username + Post + Button */}
+          <div className="flex flex-col flex-1 justify-center gap-1">
+            {/* Username and Post count */}
+            <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between w-full">
+              <h2 className="text-lg font-semibold text-gray-800 truncate">
                 {user.userName}
               </h2>
-              <p className="text-sm text-gray-500">
-                {user.post || "unknown"} post
-              </p>
             </div>
 
+            {/* Follow / Unfollow Button */}
             <button
               onClick={handleFollow}
-              className="self-start flex items-center gap-1 px-4 py-2 bg-[var(--primary-color)] text-white text-sm font-medium rounded-xl hover:bg-pink-600"
+              disabled={isPending}
+              className={`group relative mt-2 flex items-center cursor-pointer justify-center gap-2 px-4 py-1.5 rounded-full border text-sm font-medium transition-all duration-300 shadow-sm
+        ${
+          isFollowing
+            ? "bg-white text-[var(--primary-color)] border-[var(--primary-color)] hover:bg-[var(--primary-color)] hover:text-white"
+            : "bg-[var(--primary-color)] text-white border-[var(--primary-color)] hover:bg-rose-500"
+        }
+        active:scale-95`}
             >
-              <FaPlus className="w-4 h-4" />
-              <span>Follow</span>
+              <FaPlus
+                className={`w-4 h-4 ${
+                  isFollowing ? "hidden group-hover:block" : ""
+                }`}
+              />
+              <span>{isFollowing ? "Unfollow" : "Follow"}</span>
             </button>
           </div>
         </div>
       </div>
+
       {/* Tags */}
       <div className="flex flex-col gap-2 bg-gray-300 p-2 rounded-lg w-full max-w-md">
         <div className="flex flex-row items-center gap-2">

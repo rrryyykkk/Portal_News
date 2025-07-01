@@ -1,6 +1,6 @@
 /* eslint-disable no-unused-vars */
 import { useEffect, useState } from "react";
-import { Link } from "react-router-dom";
+import { Link, useNavigate } from "react-router-dom";
 // icons
 import { CiBookmark } from "react-icons/ci";
 import { FaBookmark } from "react-icons/fa";
@@ -27,10 +27,9 @@ const truncateText = (text, maxLength = 100) => {
 
 const NewsPost = ({ news }) => {
   const [postsData, setPostsData] = useState(news);
-  console.log("postsData-newsAll:", postsData);
   const toggleBookmark = useToggleMarked();
   const setToast = useToastStore((state) => state.setToast);
-
+  const navigate = useNavigate();
   useEffect(() => {
     setPostsData(news);
   }, [news]);
@@ -86,7 +85,6 @@ const NewsPost = ({ news }) => {
       {/* Posts */}
       <div className="grid grid-cols-1 md:grid-cols-1 lg:grid-cols-2 px-4 md:px-8 pt-4 gap-5">
         {postsData.slice(0, 4).map((post) => {
-          console.log("post-user:", post.userId);
           return (
             <div
               key={post.id || post._id}
@@ -123,34 +121,68 @@ const NewsPost = ({ news }) => {
                 </div>
 
                 {/* Author section */}
-                <div className="flex items-center bg-gray-100 p-2 rounded-lg shadow">
-                  <img
-                    src={post.userId?.profileImage || "/avatar/01.jpg"}
-                    alt={post.author}
-                    className="w-8 h-8 rounded-full"
-                  />
-                  <div className="flex flex-col ml-2">
-                    <h3 className="text-sm font-semibold">
-                      {post.userId?.userName}
-                    </h3>
-                    <p className="text-xs text-gray-500">
-                      {post.createdAt
-                        ? formatDate(post.createdAt)
-                        : "Unknown date"}
+                <div
+                  className="bg-gradient-to-br from-white/80 to-white/60 dark:from-white/10 dark:to-white/5 
+                                                backdrop-blur-md border border-white/60 dark:border-white/20 ring-1 ring-black/5 flex items-center 
+                                                gap-3 rounded-2xl p-3 shadow-md hover:shadow-lg transition-shadow duration-300"
+                >
+                  <button
+                    onClick={() => {
+                      if (!post.userId?._id) {
+                        setToast({
+                          type: "error",
+                          message: "Account tidak ditemukan",
+                        });
+                        navigate("*");
+                      } else {
+                        navigate(`/profile/${post.userId._id}`);
+                      }
+                    }}
+                    className="shrink-0"
+                  >
+                    <img
+                      src={post.userId?.profileImage || "/avatar/01.jpg"}
+                      alt={post.author}
+                      className="w-10 h-10 object-cover rounded-xl transition-transform duration-300 hover:scale-105 cursor-pointer"
+                    />
+                  </button>
+                  <div className="flex flex-col">
+                    <button
+                      onClick={() => {
+                        if (!post.userId?._id) {
+                          setToast({
+                            type: "error",
+                            message: "Account tidak ditemukan",
+                          });
+                          navigate("*");
+                        } else {
+                          navigate(`/profile/${post.userId._id}`);
+                        }
+                      }}
+                      className="shrink-0"
+                    >
+                      <h4 className="text-sm font-semibold text-gray-800 dark:text-gray-100 hover:underline cursor-pointer">
+                        {post.userId?.userName || post.author || "Unknown"}
+                      </h4>
+                    </button>
+
+                    <p className="text-xs text-gray-500 dark:text-gray-400">
+                      {post.createdAt ? formatDate(post.createdAt) : "Unknown"}
                     </p>
                   </div>
                   <button
                     onClick={() =>
-                      handleBookmark(post.id || post._id, post.bookmark)
+                      handleBookmark(post._id || post.id, post.bookmark)
                     }
-                    className="ml-auto rounded-md p-2 transition-all duration-300 ease-in-out 
-                  hover:bg-[var(--primary-color)] hover:text-white hover:shadow-md 
-                  hover:ring-2 hover:ring-[var(--primary-color)] cursor-pointer"
+                    className="ml-auto rounded-xl p-2 transition-all duration-300 ease-in-out 
+                                                    hover:bg-[var(--primary-color)] hover:text-white hover:shadow-md 
+                                                    hover:ring-2 hover:ring-[var(--primary-color)] cursor-pointer"
+                    aria-label="Bookmark post"
                   >
                     {post.bookmark ? (
-                      <FaBookmark className="w-5 h-5 text-blue-600" />
+                      <FaBookmark className="w-5 h-5" />
                     ) : (
-                      <CiBookmark className="w-5 h-5 text-gray-600" />
+                      <CiBookmark className="w-5 h-5" />
                     )}
                   </button>
                 </div>

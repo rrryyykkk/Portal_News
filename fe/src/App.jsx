@@ -9,7 +9,7 @@ import About from "./pages/About";
 import Contact from "./pages/Contact";
 import ProfilePage from "./pages/ProfilePage";
 import EditProfile from "./pages/profile/EditProfile";
-// import news from "./data/news.json";
+import ProtectdRoutes from "./midlleware/ProtectedRoute";
 import NewsPost from "./pages/news/NewsPost";
 import LatestVideo from "./pages/news/LatestVideoPage";
 import NotFound from "./pages/NotFound";
@@ -60,7 +60,6 @@ const videos = [
 
 function App() {
   const meUser = useAuthStore((state) => state.user);
-  console.log("meUser:", meUser);
 
   return (
     <>
@@ -129,7 +128,9 @@ function App() {
           path="/profile/me"
           element={
             <Layout meUser={meUser}>
-              <ProfilePage isMe meUser={meUser} />
+              <ProtectdRoutes>
+                <ProfilePage isMe meUser={meUser} />
+              </ProtectdRoutes>
             </Layout>
           }
         />
@@ -137,7 +138,9 @@ function App() {
           path="/profile/me/edit"
           element={
             <Layout meUser={meUser}>
-              <EditProfile isMe meUser={meUser} />
+              <ProtectdRoutes>
+                <EditProfile isMe meUser={meUser} />
+              </ProtectdRoutes>
             </Layout>
           }
         />
@@ -145,7 +148,9 @@ function App() {
           path="/profile/:id"
           element={
             <Layout meUser={meUser}>
-              <ProfilePage meUser={meUser} />
+              <ProtectdRoutes>
+                <ProfilePage meUser={meUser} />
+              </ProtectdRoutes>
             </Layout>
           }
         />

@@ -46,6 +46,7 @@ const newsSchema = new mongoose.Schema(
     views: { type: Number, default: 0 },
     comments: { type: Number, default: 0 },
     trendyScore: { type: Number, default: 0 },
+    popularScore: { type: Number, default: 0 },
     viewsLatest: { type: Number, default: 0 },
   },
   { timestamps: true }

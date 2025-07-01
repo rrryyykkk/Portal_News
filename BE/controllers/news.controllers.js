@@ -61,7 +61,7 @@ export const getAllNews = async (req, res) => {
     });
   } catch (error) {
     console.log("Error fetching news:", error.message);
-    res.status(500).json({ error: error.message });
+    res.status(500).json({ error: "internal server error" });
   }
 };
 
@@ -210,7 +210,6 @@ export const createNews = async (req, res) => {
   try {
     const { title, description, author, category } = req.body;
 
-    const startUpload = Date.now();
     const imageFile = req.files?.newsImage?.[0];
     const videoFile = req.files?.newsVideo?.[0];
 
@@ -221,7 +220,6 @@ export const createNews = async (req, res) => {
       ? await uploadToCloudinary(videoFile.buffer, "news", videoFile.mimetype)
       : null;
 
-    const startSave = Date.now();
     const newNews = new News({
       title,
       description,
@@ -240,9 +238,7 @@ export const createNews = async (req, res) => {
       .json({ message: "News successfuly created. ", news: newNews });
   } catch (error) {
     console.log("❌ failed to make news. ", error.message);
-    res
-      .status(500)
-      .json({ message: "failed to make news. ", error: error.message });
+    res.status(500).json({ message: "failed to make news. " });
   }
 };
 
@@ -310,7 +306,6 @@ export const updateNews = async (req, res) => {
     res.status(500).json({
       success: false,
       message: "Failed to update news",
-      error: error.message,
     });
   }
 };
@@ -331,7 +326,6 @@ export const deleteNews = async (req, res) => {
     res.status(500).json({
       success: false,
       message: "Failed to delete news.",
-      error: error.message,
     });
   }
 };
@@ -376,16 +370,29 @@ export const getStatisticNewsById = async (req, res) => {
       });
     }
 
+    // cek apakah sduh follow user
+    let isFollowing = false;
+    if (userId && news.userId?._id) {
+      const currnentUser = await User.findById(userId)
+        .select("following")
+        .lean();
+      if (currnentUser?.following?.includes(news.userId._id.toString())) {
+        isFollowing = true;
+      }
+    }
+
     const author = news.userId
       ? {
           _id: news.userId._id,
           userName: news.userId.userName,
           fullName: news.userId.fullName,
           profileImage: news.userId.profileImage,
+          isFollowing,
         }
       : {
           userName: news.author || "Anonymous",
           fullName: news.author || "Anonymous",
+          isFollowing: false,
         };
 
     // cek marked sudh ada atau belum
@@ -425,8 +432,6 @@ export const getStatisticNewsByAdmin = async (req, res) => {
     // ✅ Validasi autentikasi dan role
     const userId = req.user?._id;
     const role = req.user?.role;
-    console.log("userId:", userId);
-    console.log("role:", role);
 
     if (!userId || role !== "admin") {
       return res.status(403).json({ message: "Access denied. Admin only." });
@@ -467,7 +472,6 @@ export const getStatisticNewsByAdmin = async (req, res) => {
         createdAt: 1,
       }
     ).sort({ views: -1, createdAt: -1 });
-    console.log("newsStat:", newsStat);
 
     // ✅ Return statistik secara aman
     res.status(200).json({ period, count: newsStat.length, newsStat });
@@ -484,8 +488,6 @@ export const getRelatedNews = async (req, res) => {
   try {
     const { newsId } = req.params;
     const userId = req.user?._id;
-    console.log("newsId:", newsId);
-    console.log("userId:", userId);
 
     if (!mongoose.Types.ObjectId.isValid(newsId)) {
       return res.status(404).json({ message: "Invalid newsId" });
@@ -507,6 +509,7 @@ export const getRelatedNews = async (req, res) => {
     })
       .sort({ createdAt: -1 })
       .limit(8)
+      .populate("userId", "userName fullName profileImage")
       .lean();
 
     relatedNews.push(...byCategory);
@@ -566,7 +569,6 @@ export const getRelatedNews = async (req, res) => {
         };
       })
     );
-    console.log("withExtras-related:", withExtras);
 
     return res.status(200).json({
       success: true,
@@ -582,16 +584,11 @@ export const getRelatedNews = async (req, res) => {
 export const topNews = async (req, res) => {
   try {
     const userId = req.user?._id;
-    // hitung 7 hari terakhir
     const sevenDaysAgo = new Date();
     sevenDaysAgo.setDate(sevenDaysAgo.getDate() - 7);
 
     let news = await News.aggregate([
-      {
-        $match: {
-          createdAt: { $gte: sevenDaysAgo },
-        },
-      },
+      { $match: { createdAt: { $gte: sevenDaysAgo } } },
       {
         $addFields: {
           trendyScore: {
@@ -605,7 +602,6 @@ export const topNews = async (req, res) => {
       },
       { $sort: { trendyScore: -1 } },
       { $limit: 10 },
-      // populate manual
       {
         $lookup: {
           from: "users",
@@ -614,16 +610,10 @@ export const topNews = async (req, res) => {
           as: "user",
         },
       },
-      // ambil 1 data user karna hasil lookupnya array
-      {
-        $unwind: {
-          path: "$user",
-          preserveNullAndEmptyArrays: true, // biar data external masih ada
-        },
-      },
-      // batasi field yg dikembalikan
+      { $unwind: { path: "$user", preserveNullAndEmptyArrays: true } },
       {
         $project: {
+          _id: 1,
           title: 1,
           description: 1,
           newsImage: 1,
@@ -641,12 +631,12 @@ export const topNews = async (req, res) => {
       },
     ]);
 
-    // Kalau kosong, ambil 10 terbaru sebagai fallback
     if (!news || news.length === 0) {
       news = await News.find()
         .sort({ createdAt: -1 })
         .limit(10)
-        .populate("userId", "fullName userName profileImage");
+        .populate("userId", "fullName userName profileImage")
+        .lean(); // langsung lean agar bersih
     }
 
     let markedSet = new Set();
@@ -657,26 +647,56 @@ export const topNews = async (req, res) => {
       }
     }
 
-    // Tambahkan properti `bookmark` ke setiap berita
-    const newsWithBookmark = news.map((item) => ({
-      ...item,
-      bookmark: markedSet.has(item._id.toString()), // ✅ ini kuncinya
-    }));
+    // Bersihkan hasil agar tidak ada _doc dengan map bersih
+    const newsWithBookmark = news.map((item) => {
+      const cleanItem = item.toObject ? item.toObject() : item;
+      return {
+        ...cleanItem,
+        bookmark: markedSet.has(item._id.toString()),
+      };
+    });
 
     res.status(200).json({ success: true, news: newsWithBookmark });
   } catch (error) {
+    console.error(error);
     res.status(500).json({ error: error.message });
   }
 };
 
 // popular news
+
+// algo buat si popular news
+export const calculatePopularityScore = ({
+  views = 0,
+  likes = 0,
+  comments = 0,
+  createdAt,
+}) => {
+  const now = new Date();
+  const hoursSince = Math.max(
+    (now - new Date(createdAt)) / (1000 * 60 * 60),
+    1
+  ); // avoid 0
+
+  const viewWeight = 0.5;
+  const likeWeight = 0.3;
+  const commentWeight = 0.2;
+  const agePenalty = Math.pow(hoursSince + 2, 1.2); // smooth curve
+
+  const rawScore =
+    views * viewWeight + likes * likeWeight + comments * commentWeight;
+  const score = rawScore / agePenalty;
+
+  return score;
+};
+
 export const popularNews = async (req, res) => {
   try {
-    const { category } = req.query;
     const userId = req.user?._id; // ⬅️ pastikan verifyCookieToken atau optionalAuth dipakai
 
-    const filter = category ? { category } : {};
-    const news = await News.find(filter).sort({ views: -1 }).limit(10).lean(); // ⬅️ supaya bisa tambah field manual
+    const newsList = await News.find({})
+      .populate("userId", "userName fullName profileImage")
+      .lean();
 
     let markedSet = new Set();
     if (userId) {
@@ -686,15 +706,31 @@ export const popularNews = async (req, res) => {
       }
     }
 
-    // Tambahkan properti `bookmark` ke setiap berita
-    const newsWithBookmark = news.map((item) => ({
-      ...item,
-      bookmark: markedSet.has(item._id.toString()), // ✅ ini kuncinya
-    }));
+    // hitung popularity score
+    const scoredNews = newsList.map((item) => {
+      const score = calculatePopularityScore({
+        views: item.views || 0,
+        likes: item.likes?.length || 0,
+        comments: item.comments || 0,
+        createdAt: item.createdAt,
+      });
 
-    res.status(200).json({ success: true, news: newsWithBookmark });
+      return {
+        ...item,
+        popularScore: score,
+        bookmark: markedSet.has(item._id.toString()),
+      };
+    });
+
+    // sort berdasrkan score
+    const sortedNews = scoredNews.sort(
+      (a, b) => b.popularScore - a.popularScore
+    );
+
+    res.status(200).json({ success: true, news: sortedNews.slice(0, 10) });
   } catch (error) {
-    res.status(500).json({ error: error.message });
+    console.log("popular news error:", error.message);
+    res.status(500).json({ error: "Internal server error" });
   }
 };
 
@@ -747,6 +783,7 @@ export const getTrendyNews = async (req, res) => {
           category: 1,
           trendyScore: 1,
           createdAt: 1,
+          author: 1,
           user: {
             _id: 1,
             userName: 1,

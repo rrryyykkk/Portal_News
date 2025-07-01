@@ -25,11 +25,10 @@ const formatDate = (dateString) => {
 };
 
 import defaultProfile from "/avatar/01.jpg";
-import { Link } from "react-router-dom";
+import { Link, useNavigate } from "react-router-dom";
 
 const TrendPost = () => {
   const { data: posts } = useTrendyNews();
-  console.log("posts-trend:", posts);
   const swiperRef = useRef(null);
   const toggleBookmark = useToggleMarked();
   const [isBeginning, setIsBeginning] = useState(true);
@@ -37,6 +36,7 @@ const TrendPost = () => {
   const [screen, setScreen] = useState("desktop");
   const [postsData, setPostsData] = useState([]);
   const setToast = useToastStore((state) => state.setToast);
+  const navigate = useNavigate();
 
   useEffect(() => {
     // Hanya set jika posts.news adalah array
@@ -114,7 +114,6 @@ const TrendPost = () => {
 
   const navVariant =
     screen === "mobile" ? "mobile" : screen === "tablet" ? "tablet" : "desktop";
-  // screen === "mobile" ? "mobile" : screen === "tablet" ? "tablet" : "desktop";
 
   return (
     <div className="grid grid-cols-1 py-5">
@@ -178,25 +177,63 @@ const TrendPost = () => {
                   </h3>
                 </Link>
                 <p className="text-gray-600 text-sm">{post.description}</p>
-                <div className="bg-gray-200 flex items-center gap-2 rounded-lg p-2">
-                  <img
-                    src={post.profile?.image || defaultProfile}
-                    alt={post.author}
-                    className="w-8 h-8 object-cover rounded-md"
-                  />
-                  <div>
-                    <h4 className="text-sm font-semibold">{post.author}</h4>
-                    <p className="text-xs text-gray-600">
+                <div
+                  className="bg-gradient-to-br from-white/80 to-white/60 dark:from-white/10 dark:to-white/5 
+                  backdrop-blur-md border border-white/60 dark:border-white/20 ring-1 ring-black/5 flex items-center 
+                  gap-3 rounded-2xl p-3 shadow-md hover:shadow-lg transition-shadow duration-300"
+                >
+                  <button
+                    onClick={() => {
+                      if (!post.user?._id) {
+                        setToast({
+                          type: "error",
+                          message: "Account tidak ditemukan",
+                        });
+                        navigate("*");
+                      } else {
+                        navigate(`/profile/${post.user._id}`);
+                      }
+                    }}
+                    className="shrink-0"
+                  >
+                    <img
+                      src={post.user?.profileImage || defaultProfile}
+                      alt={post.author}
+                      className="w-10 h-10 object-cover rounded-xl transition-transform duration-300 hover:scale-105 cursor-pointer"
+                    />
+                  </button>
+
+                  <div className="flex flex-col">
+                    <button
+                      onClick={() => {
+                        if (!post.user?._id) {
+                          setToast({
+                            type: "error",
+                            message: "Account tidak ditemukan",
+                          });
+                          navigate("*");
+                        } else {
+                          navigate(`/profile/${post.user._id}`);
+                        }
+                      }}
+                    >
+                      <h4 className="text-sm font-semibold text-gray-800 dark:text-gray-100 hover:underline text-left">
+                        {post.user?.userName || post.author || "Unknown"}
+                      </h4>
+                    </button>
+                    <p className="text-xs text-gray-500 dark:text-gray-400">
                       {post.createdAt ? formatDate(post.createdAt) : "Unknown"}
                     </p>
                   </div>
+
                   <button
                     onClick={() =>
                       handleBookmark(post._id || post.id, post.bookmark)
                     }
-                    className="ml-auto rounded-md p-2 transition-all duration-300 ease-in-out 
-                    hover:bg-[var(--primary-color)] hover:text-white hover:shadow-md 
-                    hover:ring-2 hover:ring-[var(--primary-color)] cursor-pointer"
+                    className="ml-auto rounded-xl p-2 transition-all duration-300 ease-in-out 
+      hover:bg-[var(--primary-color)] hover:text-white hover:shadow-md 
+      hover:ring-2 hover:ring-[var(--primary-color)] cursor-pointer"
+                    aria-label="Bookmark post"
                   >
                     {post.bookmark ? (
                       <FaBookmark className="w-5 h-5" />

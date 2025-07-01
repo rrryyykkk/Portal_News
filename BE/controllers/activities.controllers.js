@@ -8,7 +8,6 @@ export const likeUnlike = async (req, res) => {
   try {
     const { type, targetId } = req.params;
     const userId = req.user._id;
-    console.log("type: ,targetId:", type, targetId);
 
     // Validasi tipe dan ID
     if (!["news", "comment"].includes(type)) {
@@ -292,7 +291,6 @@ export const markedNews = async (req, res) => {
   } catch (error) {
     console.error("❌ Marked Error:", error.message);
     res.status(500).json({
-      error: error.message,
       message: "Failed to update marked news",
     });
   }

@@ -26,7 +26,6 @@ const Login = () => {
   const onLogin = async (e) => {
     e.preventDefault();
 
-    // Validasi form
     const newError = {};
     if (!formData.email) {
       newError.email = "Email is required";
@@ -41,12 +40,11 @@ const Login = () => {
       return;
     }
 
-    // Proses login
     setLoading(true);
     setError({});
 
     try {
-      await loginUser(formData); // login ke backend
+      await loginUser(formData);
       const me = useAuthStore.getState().user;
       if (me) {
         setToast({ message: "Login successfully", type: "success" });
@@ -54,9 +52,7 @@ const Login = () => {
       }
     } catch (err) {
       setToast({
-        message:
-          err?.response?.data?.message ||
-          "Login failed, please check your credentials",
+        message: "Login failed, please check your Email or Password",
         type: "error",
       });
     } finally {
@@ -75,35 +71,51 @@ const Login = () => {
     }));
   };
 
+  const goHome = () => navigate("/");
+
   return (
-    <div className="min-h-screen bg-white">
+    <div className="min-h-screen bg-white dark:bg-black transition-colors">
       {/* Navbar */}
       <Navbar />
 
       {/* Title */}
-      <div className="flex justify-center items-center pt-10">
+      <div className="flex justify-center items-center pt-10 flex-col">
         <motion.h1
           initial={{ opacity: 0, y: -20 }}
           animate={{ opacity: 1, y: 0 }}
           transition={{ duration: 0.5 }}
-          className="font-semibold text-2xl"
+          className="font-semibold text-2xl dark:text-white"
         >
           LOGIN
         </motion.h1>
+
+        {/* Back to Home Button */}
+        <motion.button
+          whileHover={{ scale: 1.05 }}
+          whileTap={{ scale: 0.95 }}
+          type="button"
+          onClick={goHome}
+          className="mt-4 text-sm text-[var(--primary-color)] hover:underline transition cursor-pointer"
+        >
+          ← Back to Home
+        </motion.button>
       </div>
 
       {/* Form */}
       <div className="flex justify-center mt-8 w-full px-4">
         <motion.form
           onSubmit={onLogin}
-          className="flex flex-col w-full max-w-md space-y-6 relative"
+          className="flex flex-col w-full max-w-md space-y-6 relative bg-white dark:bg-neutral-900 p-6 rounded-xl shadow-md"
           initial={{ opacity: 0, y: 50 }}
           animate={{ opacity: 1, y: 0 }}
           transition={{ duration: 0.8, delay: 0.2 }}
         >
           {/* Email */}
           <div className="flex flex-col">
-            <label htmlFor="email" className="mb-1 text-sm font-medium">
+            <label
+              htmlFor="email"
+              className="mb-1 text-sm font-medium dark:text-white"
+            >
               Email
             </label>
             <input
@@ -111,7 +123,7 @@ const Login = () => {
               id="email"
               name="email"
               placeholder="Enter your email"
-              className="border rounded-md p-2 text-sm"
+              className="border rounded-md p-2 text-sm dark:bg-neutral-800 dark:border-neutral-700 dark:text-white"
               value={formData.email}
               onChange={handleChange}
               required
@@ -120,7 +132,10 @@ const Login = () => {
 
           {/* Password */}
           <div className="flex flex-col relative">
-            <label htmlFor="password" className="mb-1 text-sm font-medium">
+            <label
+              htmlFor="password"
+              className="mb-1 text-sm font-medium dark:text-white"
+            >
               Password
             </label>
             <input
@@ -128,14 +143,14 @@ const Login = () => {
               id="password"
               name="password"
               placeholder="Enter your password"
-              className="border rounded-md p-2 text-sm pr-10"
+              className="border rounded-md p-2 text-sm pr-10 dark:bg-neutral-800 dark:border-neutral-700 dark:text-white"
               value={formData.password}
               onChange={handleChange}
               required
             />
             <span
               onClick={togglePassword}
-              className="absolute right-3 top-[35px] cursor-pointer text-gray-500"
+              className="absolute right-3 top-[35px] cursor-pointer text-gray-500 dark:text-gray-300"
             >
               {showPassword ? <FaRegEyeSlash /> : <FaRegEye />}
             </span>
@@ -148,7 +163,10 @@ const Login = () => {
               id="remember"
               className="w-4 h-4 cursor-pointer"
             />
-            <label htmlFor="remember" className="text-sm text-black">
+            <label
+              htmlFor="remember"
+              className="text-sm text-black dark:text-white"
+            >
               Remember me
             </label>
           </div>
@@ -178,7 +196,7 @@ const Login = () => {
           </motion.button>
 
           {/* Extra links */}
-          <div className="text-center text-sm text-black mt-4">
+          <div className="text-center text-sm text-black dark:text-white mt-4">
             <p className="underline cursor-pointer mb-2">
               Forgot your password?
             </p>

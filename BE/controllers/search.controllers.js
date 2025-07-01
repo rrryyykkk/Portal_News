@@ -35,9 +35,7 @@ export const searchAll = async (req, res) => {
 
     return res.json({ news, users });
   } catch (error) {
-    console.error("❌ Regex Search Error:", error);
-    return res
-      .status(500)
-      .json({ message: "Gagal melakukan pencarian", error: error.message });
+    console.error("❌ Regex Search Error:", error.message);
+    return res.status(500).json({ message: "Gagal melakukan pencarian" });
   }
 };

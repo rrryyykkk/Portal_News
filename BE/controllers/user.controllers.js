@@ -40,7 +40,6 @@ export const getProfile = async (req, res) => {
     console.log("Profile Error:", error.message);
     res.status(500).json({
       message: "Failed to fetch profile",
-      error: error.message,
     });
   }
 };
@@ -115,7 +114,6 @@ export const getProfileById = async (req, res) => {
     console.error("Profile Error:", error.message);
     res.status(500).json({
       message: "Failed to fetch profile",
-      error: error.message,
     });
   }
 };
@@ -132,8 +130,6 @@ export const editProfile = async (req, res) => {
       profileImage,
       backgroundImage,
     } = req.body;
-
-    console.log("req.body:-editProfile", req.body);
 
     const user = await User.findById(req.user._id).select("+password");
     console.log("user:-editProfile", user);

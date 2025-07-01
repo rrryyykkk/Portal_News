@@ -8,7 +8,6 @@ const ITEMS_PER_PAGE = 8;
 
 const NewsPost = () => {
   const { data: news, isLoading, isError } = useNews();
-  console.log("news:", news);
   const [currentPage, setCurrentPage] = useState(1);
 
   // Ambil hanya 20 berita pertama

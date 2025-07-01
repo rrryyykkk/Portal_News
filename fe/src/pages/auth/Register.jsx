@@ -85,6 +85,7 @@ const Register = () => {
     }
   };
 
+  const goHome = () => navigate("/");
   return (
     <div className="min-h-screen bg-white">
       <Navbar />
@@ -115,6 +116,15 @@ const Register = () => {
             >
               Register
             </h2>
+            <motion.button
+              whileHover={{ scale: 1.05 }}
+              whileTap={{ scale: 0.95 }}
+              type="button"
+              onClick={goHome}
+              className="mb-4 text-sm text-[var(--primary-color)] hover:underline transition self-center cursor-pointer"
+            >
+              ← Back to Home
+            </motion.button>
 
             <form onSubmit={onRegister} className="space-y-5">
               {/* Name Fields */}

@@ -20,7 +20,6 @@ const HomePage = ({ video }) => {
   } = useNews();
 
   const news = newsData?.data?.news || [];
-  console.log("news-home:", news);
 
   if (newsLoading) {
     return (

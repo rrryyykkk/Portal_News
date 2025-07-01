@@ -26,7 +26,7 @@ export const registerWithEmail = async (req, res) => {
       return res.status(400).json({ message: error.details[0].message });
 
     const { email, password, userName, fullName } = req.body;
-    console.log("req.body:", req.body);
+
     const emailLower = email.toLowerCase();
     const userNameLower = userName.toLowerCase();
 
@@ -55,8 +55,6 @@ export const registerWithEmail = async (req, res) => {
       role: "user",
       provider: "email",
     });
-
-    console.log("newUser:", newUser);
 
     await newUser.save();
     res.status(201).json({ message: "User registered successfully" });
@@ -92,14 +90,14 @@ export const loginWithEmail = async (req, res) => {
     }
 
     // buat session cookie
-    const expiresIn = 12 * 60 * 60 * 1000; // 12 jam
+    const expiresIn = 2 * 60 * 60 * 1000; // 2 jam
     const sessionCookie = await admin.auth().createSessionCookie(idToken, {
       expiresIn,
     });
 
     res.cookie("authToken", sessionCookie, {
       httpOnly: true,
-      secure: false, // ganti true saat deploy HTTPS
+      secure: process.env.NODE_ENV === "production", // ganti true saat deploy HTTPS
       sameSite: "Strict",
       maxAge: expiresIn,
     });

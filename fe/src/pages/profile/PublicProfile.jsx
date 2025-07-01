@@ -4,7 +4,6 @@ import HeadersPublic from "../../components/public/HeadersPublic";
 
 const PublicProfile = ({ user, viewer }) => {
   const marked = user.marked;
-  console.log("marked:", marked);
   return (
     <div>
       <PageHeaders curPage="Public Profile" />
