@@ -9,6 +9,7 @@ import {
 } from "react-icons/md";
 import { AiFillHeart } from "react-icons/ai";
 import { useLikeUnlike } from "../../app/store/useActivities";
+import { useAuthStore } from "../../app/store/useAuthStore";
 
 // Format tanggal
 const formatDate = (dateString) => {
@@ -45,6 +46,7 @@ const MainContent = ({
 
     isLiked,
   } = news.data;
+  const user = useAuthStore((state) => state.user);
 
   const [liked, setLiked] = useState(isLiked || false);
   const [likeCount, setLikeCount] = useState(likes || 0);
@@ -52,6 +54,8 @@ const MainContent = ({
   const likeMutation = useLikeUnlike();
 
   const handleLike = () => {
+    if (!user)
+      return setToast({ type: "error", message: "Please login first" });
     setLiked((prev) => !prev);
     setLikeCount((prev) => (liked ? prev - 1 : prev + 1));
     likeMutation.mutate({ type: "news", targetId: newsId, newsId: newsId });

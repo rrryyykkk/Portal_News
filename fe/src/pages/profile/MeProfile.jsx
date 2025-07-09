@@ -6,8 +6,6 @@ import Posts from "../../components/me/Posts";
 import Marked from "../../components/me/Marked";
 
 const MeProfile = ({ user, news }) => {
-  console.log("news-me:", news);
-  console.log("user-me:", user);
   const [activeTab, setActiveTab] = useState("marked"); // default tab untuk user biasa
 
   const renderTabPage = () => {

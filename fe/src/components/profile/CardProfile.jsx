@@ -2,10 +2,8 @@ import { CiBookmark } from "react-icons/ci";
 import { FaBookmark } from "react-icons/fa";
 import { useState } from "react";
 
-/**
- * @param {{ news?: object[], marked?: object[], onBookmark?: function }} props
- */
-const CardProfile = ({ news = [], marked = [], onBookmark = () => {} }) => {
+const CardProfile = ({ news = [], marked = [] }) => {
+  console.log("marked", marked);
   const ITEMS_PER_PAGE = 9;
   const [currentPage, setCurrentPage] = useState(1);
 
@@ -46,11 +44,24 @@ const CardProfile = ({ news = [], marked = [], onBookmark = () => {} }) => {
             key={item._id}
             className="bg-white shadow-md hover:shadow-lg rounded-xl overflow-hidden transition-all duration-300"
           >
-            <img
-              src={item.newsImage || "/placeholder.jpg"}
-              alt={item.title}
-              className="w-full h-48 object-cover"
-            />
+            {
+              // Display video if available
+              item.newsVideo ? (
+                <video
+                  src={item.newsVideo}
+                  alt={item.title}
+                  className="w-full h-48 object-cover"
+                  controls
+                />
+              ) : (
+                <img
+                  src={item.newsImage || "/placeholder.jpg"}
+                  alt={item.title}
+                  className="w-full h-48 object-cover"
+                />
+              )
+            }
+
             <div className="p-4">
               <h3 className="font-bold text-lg mb-2">{item.title}</h3>
               <p className="text-sm text-gray-600 mb-4">
@@ -75,16 +86,6 @@ const CardProfile = ({ news = [], marked = [], onBookmark = () => {} }) => {
                     {new Date(item.createdAt).toLocaleDateString()}
                   </p>
                 </div>
-                <button
-                  className="ml-auto"
-                  onClick={() => onBookmark(item._id)}
-                >
-                  {marked.includes(item._id) ? ( // default semua marked aktif
-                    <FaBookmark className="w-5 h-5 text-[var(--primary-color)]" />
-                  ) : (
-                    <CiBookmark className="w-5 h-5 text-gray-600" />
-                  )}
-                </button>
               </div>
             </div>
           </div>

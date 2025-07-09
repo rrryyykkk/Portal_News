@@ -97,7 +97,7 @@ export const loginWithEmail = async (req, res) => {
 
     res.cookie("authToken", sessionCookie, {
       httpOnly: true,
-      secure: process.env.NODE_ENV === "production", // ganti true saat deploy HTTPS
+      secure: false, // ganti true saat deploy HTTPS
       sameSite: "Strict",
       maxAge: expiresIn,
     });

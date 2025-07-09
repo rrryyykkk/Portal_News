@@ -127,7 +127,7 @@ const TopPost = () => {
         {/* Tombol Panah  */}
         <SwiperBtn
           variant={navVariant}
-          variantName="trend"
+          variantName="top"
           isBeginning={isBeginning}
           isEnd={isEnd}
         />
@@ -142,8 +142,8 @@ const TopPost = () => {
             1280: { slidesPerView: 4.2, spaceBetween: 20 },
           }}
           navigation={{
-            prevEl: `.${navVariant}-prev-${"trend"}`,
-            nextEl: `.${navVariant}-next-${"trend"}`,
+            prevEl: `.${navVariant}-prev-${"top"}`,
+            nextEl: `.${navVariant}-next-${"top"}`,
           }}
           pagination={{ clickable: true }}
           onSlideChange={handleSlideChange}
